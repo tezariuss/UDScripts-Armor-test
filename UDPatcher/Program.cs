@@ -9,6 +9,7 @@ using CommandLine;
 using Noggog;
 using System.Xml.Linq;
 using System.Runtime.CompilerServices;
+using DynamicData.Kernel;
 
 namespace UDPatcher
 {
@@ -47,17 +48,37 @@ namespace UDPatcher
             return Settings.OtherMatches.FindAll(rule => rule.InputScripts.Contains(udName));
         }
 
-        private static string? GetUdScriptNameFromKw(UDKwSettings kwRules, IEnumerable<IFormLinkGetter<IKeywordGetter>>? armorKeywords)
+        private static string? GetUdScriptNameFromKws(List<UDKwSettings> kwRules, IEnumerable<string> inputScripts, 
+            IEnumerable<IFormLinkGetter<IKeywordGetter>>? armorKeywords)
         {
-            if (kwRules.OutputScript == null)
+            string? newName = null;
+            foreach (var kwRule in kwRules) { 
+                try
+                {
+                    newName = GetUdScriptNameFromKw(kwRule, armorKeywords);
+                } catch (Exception ex)
+                {
+                    throw new Exception($"Failed on KW rule with output {kwRule.OutputScript}", ex);
+                }
+                if (newName != null && !inputScripts.Contains(newName))
+                {
+                    return newName;
+                }
+            }
+            return newName;
+        }
+
+        private static string? GetUdScriptNameFromKw(UDKwSettings kwRule, IEnumerable<IFormLinkGetter<IKeywordGetter>>? armorKeywords)
+        {
+            if (kwRule.OutputScript == null)
             {
                 throw new Exception("Output Script of Keyword Match not defined");
             } else if (armorKeywords == null) {
                 return null;
             }
-            else if (kwRules.Keywords.Intersect(armorKeywords).Any())
+            else if (kwRule.Keywords.Intersect(armorKeywords).Any())
             {
-                return kwRules.OutputScript;
+                return kwRule.OutputScript;
             } else
             {
                 return null;
@@ -106,7 +127,7 @@ namespace UDPatcher
             string? newUdName;
             try
             {
-                newUdName = GetUdScriptNameFromKw(otherRule.KeywordMatch, armor.Keywords);
+                newUdName = GetUdScriptNameFromKws(otherRule.KeywordMatch, inputScripts, armor.Keywords);
             }
             catch (Exception e)
             {
@@ -118,7 +139,7 @@ namespace UDPatcher
             }
             try
             {
-                return GetUdScriptNameFromSearchRules(otherRule.NameMatch, otherRule.InputScripts, armor.Name.String);
+                return GetUdScriptNameFromSearchRules(otherRule.NameMatch, inputScripts, armor.Name.String);
             } catch (Exception e)
             {
                 throw new Exception("Failed to match Search rule", e);
@@ -204,6 +225,13 @@ namespace UDPatcher
             return allNames;
         }
 
+        public static HashSet<string> GetZadNamesFromRules(IEnumerable<UDOtherSetting> otherSettings)
+        {
+            return otherSettings.Select(setting => setting.OutputScript).ToHashSet();
+        }
+
+        //public static List<UDOtherSetting> ConvertSettingList(List<U>)
+
         public static HashSet<string> GetAllZadScriptNamesFromSettings()
         {
             var allNames = new HashSet<string>();
@@ -213,8 +241,19 @@ namespace UDPatcher
             }
             foreach(var otherRule in Settings.OtherMatches)
             {
-                allNames.Add(otherRule.KeywordMatch.OutputScript);
-                allNames.UnionWith(otherRule.NameMatch.Select(rule => rule.OutputScript));
+                /*var gameg = new List<IEnumerable<UDOtherSetting>>();
+                gameg.Add(otherRule.KeywordMatch.Select(match => match.Cast<UDOtherSetting>()));
+                foreach (var matcher in new List<List<UDOtherSetting>>() { otherRule.KeywordMatch, otherRule.NameMatch } )
+                {
+
+                }
+                //allNames.Add(otherRule.KeywordMatch.OutputScript);
+                allNames.UnionWith(otherRule.NameMatch.Select(rule => rule.OutputScript));*/
+                //List<List<UDOtherSetting>> stuff = new(){ otherRule.KeywordMatch, otherRule.NameMatch };
+                var kwMatches = otherRule.KeywordMatch.Select(match => (UDOtherSetting)match);
+                var nameMatches = otherRule.NameMatch.Select(match => (UDOtherSetting)match);
+                allNames.UnionWith(GetZadNamesFromRules(kwMatches));
+                allNames.UnionWith(GetZadNamesFromRules(nameMatches));
             }
             return allNames;
         }

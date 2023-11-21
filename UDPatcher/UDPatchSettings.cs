@@ -27,14 +27,14 @@ namespace UDPatcher
         /*public FormLink<IKeywordGetter> UDKeyword = new();
         public HashSet<FormLink<IKeywordGetter>> KeywordsToMatch = new();*/
         public HashSet<string> InputScripts = new HashSet<string>();
-        public UDKwSettings KeywordMatch = new();
+        public List<UDKwSettings> KeywordMatch = new();
         public List<UDNameSearchSettings> NameMatch = new();
     }
 
-    public class UDKwSettings
+    public class UDKwSettings : UDOtherSetting
     {
         public HashSet<IFormLinkGetter<IKeywordGetter>> Keywords = new();
-        public string OutputScript = string.Empty;
+        //public string OutputScript = string.Empty;
     }
 /*
     public class UDNameSettings
@@ -43,9 +43,14 @@ namespace UDPatcher
         public List<UDNameSearchSettings> SearchResults = new();
     }*/
 
-    public class UDNameSearchSettings
+    public class UDNameSearchSettings : UDOtherSetting
     {
         public string SearchText = string.Empty;
+        //public string OutputScript = string.Empty;
+    }
+
+    public abstract class UDOtherSetting
+    {
         public string OutputScript = string.Empty;
     }
 }
