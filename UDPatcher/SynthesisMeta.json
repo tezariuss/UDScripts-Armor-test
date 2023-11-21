@@ -5,8 +5,8 @@
   "LongDescription": "Changed DD device scripts to UD scripts, adds keywords, etc.",
   "PreferredAutoVersioning": "Default",
   "RequiredMods": [
-    "UnforgivingDevices.esp",
-    "Devious Devices - Integration.esp"
+    "Devious Devices - Integration.esm",
+    "UnforgivingDevices.esp"
   ],
   "TargetedReleases": [
     "SkyrimSE"
