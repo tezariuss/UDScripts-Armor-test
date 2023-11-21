@@ -32,7 +32,7 @@ namespace UDPatcher
                             path: "settings.json",
                             out Settings,
                             true)
-                .SetTypicalOpen(GameRelease.SkyrimSE, "gamerpatch.esp")
+                .SetTypicalOpen(GameRelease.SkyrimSE, Settings.Value.OutputPatchMod)
                 .Run(args);
         }
 

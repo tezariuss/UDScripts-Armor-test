@@ -10,7 +10,7 @@ namespace UDPatcher
     public class UDPatchSettings
     {
         public bool UseModes = false;
-        public string OutputPatchName = string.Empty;
+        public ModKey OutputPatchMod = ModKey.Null;
         public HashSet<ModKey> ModsToPatch = new();
         //public ModKey ModToPatch = ModKey.Null;
     }
