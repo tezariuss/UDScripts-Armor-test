@@ -11,7 +11,7 @@ namespace UDPatcher
     public class UDPatchSettings
     {
         public bool UseModes = false;
-        public ModKey OutputPatchMod = ModKey.Null;
+        //public ModKey OutputPatchMod = ModKey.Null;
         public HashSet<ModKey> ModsToPatch = new();
         public Dictionary<string, HashSet<string>> ScriptMatches = new();
         public List<UDOtherSettings> OtherMatches = new();
