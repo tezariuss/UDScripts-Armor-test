@@ -112,7 +112,7 @@ namespace UDPatcher
             {
                 throw new Exception("Failed to match Keywords", e);
             }
-            if (armor.Name!.String == null || (newUdName != null && !inputScripts.Contains(newUdName)))
+            if (armor.Name == null || armor.Name.String == null || (newUdName != null && !inputScripts.Contains(newUdName)))
             {
                 return newUdName;
             }
@@ -219,6 +219,36 @@ namespace UDPatcher
             return allNames;
         }
 
+        public static ScriptEntry CopyInvScriptToRender(IScriptEntryGetter original)
+        {
+            var VALID_PROP_NAMES = new HashSet<string>() { "deviceInventory", "libs", "zad_DeviousDevice" };
+            var REPLACEMENT_PROP_NAMES = new Dictionary<string, string>() {
+            { "zad_DeviousDevice", "UD_DeviceKeyword"}};
+            var newScript = original.DeepCopy();
+            newScript.Properties.RemoveWhere(prop => !VALID_PROP_NAMES.Contains(prop.Name));
+            foreach (var prop in newScript.Properties)
+            {
+                if (REPLACEMENT_PROP_NAMES.TryGetValue(prop.Name, out var newName))
+                {
+                    prop.Name = newName;
+                }
+            }
+            /*var toRemove = new List<int>();
+            for(int i = 0; i < props.Count; i++)
+            {
+                if (!VALID_PROP_NAMES.Contains(props[i].Name))
+                {
+                    toRemove.Add(i);
+                }
+            }*/
+            return newScript;
+            //props = props.IntersectBy(VALID_PROP_NAMES, (prop => prop.Name)).ToExtendedList();
+            /*foreach (var index in toRemove)
+            {
+                props.
+            }*/
+        }
+
         public static T DumbRecordGetter<T>(ILinkCache linkCache, ModKey mod, uint formId)
         {
             return linkCache.Resolve(new FormKey(mod, formId), typeof(T)).Cast<T>();
@@ -280,7 +310,7 @@ namespace UDPatcher
                 {
                     armor.Keywords = new ExtendedList<IFormLinkGetter<IKeywordGetter>>();
                 }
-                foreach (var keyword in new List<IKeywordGetter>())
+                foreach (var keyword in keywords)
                 {
                     var kwLink = keyword.ToLinkGetter();
                     if (!armor.Keywords.Contains(kwLink))
@@ -341,7 +371,7 @@ namespace UDPatcher
                     IScriptEntryGetter? renderUDScript = null;
                     if (renderArmor.VirtualMachineAdapter != null)
                     {
-                        FindArmorScript(renderArmor.VirtualMachineAdapter!.Scripts, UDScripts);
+                        renderUDScript = FindArmorScript(renderArmor.VirtualMachineAdapter!.Scripts, UDScripts);
                     }
                     
                     /*if (renderUDScript == null && invUDScript == null)
@@ -363,7 +393,7 @@ namespace UDPatcher
                     {
                         renderArmorOverride.VirtualMachineAdapter = new VirtualMachineAdapter();
                     }
-                    renderArmorOverride.Keywords.Add(udInvKeyword);
+                    //renderArmorOverride.Keywords.Add(udInvKeyword);
 
                     //var newRenderScriptName = UDScripts[invZadScript!.Name].Name;
                     
@@ -375,6 +405,11 @@ namespace UDPatcher
                         {
                             throw new Exception("wtf???");
                         }
+                        if (invArmorOverride.Keywords == null)
+                        {
+                            invArmorOverride.Keywords = new();
+                        }
+                        invArmorOverride.Keywords.Add(udInvKeyword);
                         var invScript = invArmorOverride.VirtualMachineAdapter.Scripts.Where(script => script.Name == invFinalScript.Name).Single();
                         //invScript.Name = "UD_CustomDevice_EquipScript";
                         
@@ -390,10 +425,13 @@ namespace UDPatcher
                         var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, invFinalScript.Name);
                         if (newRenderScriptName == null)
                         {
+                            Console.WriteLine($"Unable to find corresponding renderScript for {invFinalScript.Name} ({renderArmor})");
                             continue;
                         }
-                        var newRenderScript = invFinalScript.DeepCopy();
+                        var newRenderScript = CopyInvScriptToRender(invFinalScript);
                         newRenderScript.Name = newRenderScriptName;
+
+                        Console.WriteLine($"Created new script: {newRenderScriptName}");
 
                         if (renderUDScript == null)
                         {
@@ -404,7 +442,7 @@ namespace UDPatcher
                                 renderArmorOverride.VirtualMachineAdapter = new VirtualMachineAdapter();
                             }*/
                             
-                            renderArmorOverride.VirtualMachineAdapter.Scripts.Append(newRenderScript);
+                            renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
                             addKeywords(renderArmorOverride);
                             Console.WriteLine($"Device {renderArmorOverride} patched!");
                             totalPatched++;
@@ -438,7 +476,7 @@ namespace UDPatcher
                         {
                             continue;
                         }
-                        var newRenderScript = invFinalScript.DeepCopy();
+                        var newRenderScript = CopyInvScriptToRender(invFinalScript);
                         newRenderScript.Name = newRenderScriptName;
                         renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
                         addKeywords(renderArmorOverride);
