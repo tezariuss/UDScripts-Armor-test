@@ -1,0 +1,14 @@
+{
+  "Nickname": "Unforgiving Devices Device Patcher",
+  "Visibility": "Visible",
+  "OneLineDescription": "Patches DD devices for UD",
+  "LongDescription": "Changed DD device scripts to UD scripts, adds keywords, etc.",
+  "PreferredAutoVersioning": "Default",
+  "RequiredMods": [
+    "UnforgivingDevices.esp",
+    "Devious Devices - Integration.esp"
+  ],
+  "TargetedReleases": [
+    "SkyrimSE"
+  ]
+}
