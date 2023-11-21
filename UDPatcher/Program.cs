@@ -32,7 +32,7 @@ namespace UDPatcher
                             path: "settings.json",
                             out Settings,
                             true)
-                .SetTypicalOpen(GameRelease.SkyrimSE, Settings.Value.OutputPatchMod)
+                .SetTypicalOpen(GameRelease.SkyrimSE, "UD_Patch.esp")
                 .Run(args);
         }
 
@@ -117,6 +117,7 @@ namespace UDPatcher
             //state.PatchMod.ModKey
             var UDScripts = new Dictionary<string, IScriptEntryGetter>();
             var zadScripts = new Dictionary<string, IScriptEntryGetter>();
+
 
             //const bool USE_MODES = Settings.Value.UseModes;
 
