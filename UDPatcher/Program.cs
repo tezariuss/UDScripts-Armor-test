@@ -192,19 +192,6 @@ namespace UDPatcher
             return newUdName;
         }
 
-       /* public static IScriptEntryGetter? FindArmorScript(IEnumerable<IScriptEntryGetter> armorScripts, 
-            IDictionary<string, IScriptEntryGetter> searchScripts)
-        {
-            
-            foreach (var armorScript in armorScripts) {
-                if (searchScripts.TryGetValue(armorScript.Name, out var outScript))
-                {
-                    return outScript;
-                }
-            }
-            return null;
-        }*/
-
         public static IScriptEntryGetter? FindArmorScript(IEnumerable<IScriptEntryGetter> armorScripts,
             IEnumerable<string> searchScripts)
         {
@@ -230,8 +217,6 @@ namespace UDPatcher
             return otherSettings.Select(setting => setting.OutputScript).ToHashSet();
         }
 
-        //public static List<UDOtherSetting> ConvertSettingList(List<U>)
-
         public static HashSet<string> GetAllZadScriptNamesFromSettings()
         {
             var allNames = new HashSet<string>();
@@ -241,15 +226,6 @@ namespace UDPatcher
             }
             foreach(var otherRule in Settings.OtherMatches)
             {
-                /*var gameg = new List<IEnumerable<UDOtherSetting>>();
-                gameg.Add(otherRule.KeywordMatch.Select(match => match.Cast<UDOtherSetting>()));
-                foreach (var matcher in new List<List<UDOtherSetting>>() { otherRule.KeywordMatch, otherRule.NameMatch } )
-                {
-
-                }
-                //allNames.Add(otherRule.KeywordMatch.OutputScript);
-                allNames.UnionWith(otherRule.NameMatch.Select(rule => rule.OutputScript));*/
-                //List<List<UDOtherSetting>> stuff = new(){ otherRule.KeywordMatch, otherRule.NameMatch };
                 var kwMatches = otherRule.KeywordMatch.Select(match => (UDOtherSetting)match);
                 var nameMatches = otherRule.NameMatch.Select(match => (UDOtherSetting)match);
                 allNames.UnionWith(GetZadNamesFromRules(kwMatches));
@@ -272,20 +248,7 @@ namespace UDPatcher
                     prop.Name = newName;
                 }
             }
-            /*var toRemove = new List<int>();
-            for(int i = 0; i < props.Count; i++)
-            {
-                if (!VALID_PROP_NAMES.Contains(props[i].Name))
-                {
-                    toRemove.Add(i);
-                }
-            }*/
             return newScript;
-            //props = props.IntersectBy(VALID_PROP_NAMES, (prop => prop.Name)).ToExtendedList();
-            /*foreach (var index in toRemove)
-            {
-                props.
-            }*/
         }
 
         public static T DumbRecordGetter<T>(ILinkCache linkCache, ModKey mod, uint formId)
@@ -295,12 +258,8 @@ namespace UDPatcher
 
         public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
-            /*var UDScripts = new Dictionary<string, IScriptEntryGetter>();
-            var zadScripts = new Dictionary<string, IScriptEntryGetter>();*/
             var UDScripts = GetAllUdScriptNamesFromSettings();
             var zadScripts = GetAllZadScriptNamesFromSettings();
-
-            //const bool USE_MODES = Settings.Value.UseModes;
 
             const string DDI_NAME = "Devious Devices - Integration.esm";
             ModKey ddiMod = ModKey.FromFileName(DDI_NAME);
@@ -309,7 +268,6 @@ namespace UDPatcher
 
             const string UD_NAME = "UnforgivingDevices.esp";
             ModKey udMod = ModKey.FromFileName(UD_NAME);
-            //ISkyrimModGetter udModGetter = Mod
 
             const int UDINVKW_ID = 0x1553dd;
             const int UDPATCHKW_ID = 0x13A977;
@@ -318,19 +276,15 @@ namespace UDPatcher
 
             const int UDCDMAINQST_ID = 0x15e73c;
 
-            //IEnumerable<IModListing<ISkyrimModGetter>> masters = new List<IModListing<ISkyrimModGetter>>() {new ModListing<ISkyrimModGetter>(ddiMod, true, true)};
             var shortenedLoadOrder = state.LoadOrder.PriorityOrder.Where(
                 mod =>
                 Settings.ModsToPatch.Contains(mod.ModKey)
-                //Settings.Value.ModToPatch == mod.ModKey
                 );
             var shortenedLoadOrderFuller = state.LoadOrder.PriorityOrder.Where(mod =>
                 Settings.ModsToPatch.Contains(mod.ModKey) || mod.ModKey == ddiMod || mod.ModKey == udMod
                 );
             var idLinkCache = shortenedLoadOrderFuller.ToImmutableLinkCache<ISkyrimMod, ISkyrimModGetter>();
-            //var zadInvKeyword = GetZadInventoryKeyword(idLinkCache);
             IKeywordGetter zadInvKeyword = DumbRecordGetter<IKeywordGetter>(idLinkCache, ddiMod, ZADINVKW_ID);
-                //idLinkCache.Resolve(new FormKey(ModKey.FromFileName(DDI_NAME), ZADINV_ID), typeof(IKeywordGetter)).Cast<IKeywordGetter>();
             IKeywordGetter udInvKeyword = DumbRecordGetter<IKeywordGetter>(idLinkCache, udMod, UDINVKW_ID);
             IKeywordGetter udPatchKw = DumbRecordGetter<IKeywordGetter>(idLinkCache, udMod, UDPATCHKW_ID);
             IKeywordGetter udKw = DumbRecordGetter<IKeywordGetter>(idLinkCache, udMod, UDKW_ID);
@@ -358,7 +312,6 @@ namespace UDPatcher
                     }
                 }
             }
-                //idLinkCache.Resolve(new FormKey(ModKey.FromFileName(UD_NAME), UDCDMAIN_ID), typeof(IQuestGetter)).Cast<IQuestGetter>();
             int totalPatched = 0;
             int newDevices = 0;
             foreach (var invArmorGetter in shortenedLoadOrder.Armor().WinningOverrides())
@@ -377,14 +330,9 @@ namespace UDPatcher
                 {
                     Console.WriteLine("Found zadInvKeyword");
                     // find the script the armour's using
-                    var invCurrentScripts = invArmorGetter.VirtualMachineAdapter.Scripts;//.Select(script => script.Name);
+                    var invCurrentScripts = invArmorGetter.VirtualMachineAdapter.Scripts;
                     var invUDScript = FindArmorScript(invCurrentScripts, UDScripts);
                     var invZadScript = FindArmorScript(invCurrentScripts, zadScripts);
-                    /*if (invZadScript == null && invUDScript == null)
-                    {
-                        Console.WriteLine("penigs");
-                        continue;
-                    }*/
                     var invFinalScript = invZadScript != null ? invZadScript : invUDScript;
                     if (invFinalScript == null)
                     {
@@ -403,7 +351,6 @@ namespace UDPatcher
                         renderArmor = foundArmor;
                     } else
                     {
-                        //throw new Exception($"Invalid render target {renderDevice.FormKey} for inventory item {invArmorGetter.EditorID} ({invArmorGetter.FormKey})");
                         Console.WriteLine($"Invalid render target {renderDevice.FormKey} for inventory item {invArmorGetter.EditorID} ({invArmorGetter.FormKey})");
                         continue;
                     }
@@ -412,12 +359,6 @@ namespace UDPatcher
                     {
                         renderUDScript = FindArmorScript(renderArmor.VirtualMachineAdapter!.Scripts, UDScripts);
                     }
-                    
-                    /*if (renderUDScript == null && invUDScript == null)
-                    {
-                        Console.WriteLine("pegnis");
-                        continue;
-                    }*/
                     var renderArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(renderArmor);
                     if (renderArmorOverride == null)
                     {
@@ -432,11 +373,6 @@ namespace UDPatcher
                     {
                         renderArmorOverride.VirtualMachineAdapter = new VirtualMachineAdapter();
                     }
-                    //renderArmorOverride.Keywords.Add(udInvKeyword);
-
-                    //var newRenderScriptName = UDScripts[invZadScript!.Name].Name;
-                    
-
                     if (invUDScript == null)
                     {
                         var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
@@ -450,13 +386,11 @@ namespace UDPatcher
                         }
                         invArmorOverride.Keywords.Add(udInvKeyword);
                         var invScript = invArmorOverride.VirtualMachineAdapter.Scripts.Where(script => script.Name == invFinalScript.Name).Single();
-                        //invScript.Name = "UD_CustomDevice_EquipScript";
                         
                         var UDCDProp = new ScriptObjectProperty();
                         UDCDProp.Name = "UDCDmain";
                         UDCDProp.Flags = ScriptProperty.Flag.Edited;
                         UDCDProp.Object = udMainQst.ToLink();
-                        //invScript.Properties = new ExtendedList<ScriptProperty>(UDCDProp);
                         
                         invScript.Name = "UD_CustomDevice_EquipScript";
                         invScript.Properties.Add(UDCDProp);
@@ -474,21 +408,10 @@ namespace UDPatcher
 
                         if (renderUDScript == null)
                         {
-                            //var newRenderScript = invScript.DeepCopy();
-
-                            /*if (renderArmorOverride.VirtualMachineAdapter == null)
-                            {
-                                renderArmorOverride.VirtualMachineAdapter = new VirtualMachineAdapter();
-                            }*/
-                            
                             renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
                             addKeywords(renderArmorOverride);
                             Console.WriteLine($"Device {renderArmorOverride} patched!");
                             totalPatched++;
-                            // add keywords
-                            // 1. add epatchkw
-                            // 2. add eudkw
-                            // 3. add patchnomode if not using modes
                         } else
                         {
                             Console.WriteLine($"WARNING: Render device {renderArmor} already has UD script! Creating new render device!");
@@ -500,13 +423,7 @@ namespace UDPatcher
                             newRenderArmorScripts[newRenderArmorScripts.FindIndex(script => script == renderUDScript)] = newRenderScript;
                             invScript.Properties[invScript.Properties.FindIndex(prop => prop.Name == "devideRendered")].Cast<ScriptObjectProperty>().Object = newRenderArmor.ToLink();
                             Console.WriteLine($"---NEW DEVICE {newRenderArmor} CREATED!---");
-                            //newRenderArmor.VirtualMachineAdapter!.Scripts.FindIndex(x => x == renderUDScript) = newRenderScript;
                         }
-                        //newInvScript.Properties.
-                        //newInvScript.Name = "UD_CustomDevice_EquipScript";
-                        //newInvScript.Properties = UDCDProp;
-                        // Up to element edit values
-                        //UDCDProp.
                     } else if (renderUDScript == null)
                     {
                         Console.WriteLine($"Device with patched INV but not patched REND detected. Patching renderDevice {renderArmor}.");
