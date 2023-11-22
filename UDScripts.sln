@@ -4,8 +4,6 @@ VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UDPatcher", "UDPatcher\UDPatcher.csproj", "{8BA2E1B7-DD65-42B6-A780-17E4037A3C1B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{230D6660-3FBC-4DBF-8954-35FC9CF928F7}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UDModifiers", "UDModifiers\UDModifiers.csproj", "{5BEAEDF4-3E5D-415E-B791-80F3692DA6E1}"
 EndProject
 Global
