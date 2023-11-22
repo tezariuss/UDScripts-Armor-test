@@ -33,7 +33,7 @@ namespace UDPatcher
 
         private static string? GetUdScriptNameFromZad(string zadName)
         {
-            foreach (var zadGroup in Settings.ScriptMatches)
+            foreach (var zadGroup in Settings.RenderScriptSettings.ScriptMatches)
             {
                 if (zadGroup.Value.Contains(zadName))
                 {
@@ -45,7 +45,7 @@ namespace UDPatcher
 
         private static List<UDOtherSettings> GetOtherRulesFromUd(string udName)
         {
-            return Settings.OtherMatches.FindAll(rule => rule.InputScripts.Contains(udName));
+            return Settings.RenderScriptSettings.OtherMatches.FindAll(rule => rule.InputScripts.Contains(udName));
         }
 
         private static string? GetUdScriptNameFromKws(List<UDKwSettings> kwRules, IEnumerable<string> inputScripts, 
@@ -204,8 +204,9 @@ namespace UDPatcher
 
         public static HashSet<string> GetAllUdScriptNamesFromSettings()
         {
-            var allNames = new HashSet<string>(Settings.ScriptMatches.Keys);
-            foreach(var otherRule in Settings.OtherMatches)
+            var renderSettings = Settings.RenderScriptSettings;
+            var allNames = new HashSet<string>(renderSettings.ScriptMatches.Keys);
+            foreach(var otherRule in renderSettings.OtherMatches)
             {
                 allNames.UnionWith(otherRule.InputScripts);
             }
@@ -219,12 +220,13 @@ namespace UDPatcher
 
         public static HashSet<string> GetAllZadScriptNamesFromSettings()
         {
+            var renderSettings = Settings.RenderScriptSettings;
             var allNames = new HashSet<string>();
-            foreach(var zadMatches in Settings.ScriptMatches.Values)
+            foreach(var zadMatches in renderSettings.ScriptMatches.Values)
             {
                 allNames.UnionWith(zadMatches);
             }
-            foreach(var otherRule in Settings.OtherMatches)
+            foreach(var otherRule in renderSettings.OtherMatches)
             {
                 var kwMatches = otherRule.KeywordMatch.Select(match => (UDOtherSetting)match);
                 var nameMatches = otherRule.NameMatch.Select(match => (UDOtherSetting)match);

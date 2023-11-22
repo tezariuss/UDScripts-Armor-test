@@ -16,13 +16,17 @@ namespace UDPatcher
         [Tooltip("Mods from which to read and patch Armors")]
         [MaintainOrder]
         public HashSet<ModKey> ModsToPatch = new();
-        public Dictionary<string, HashSet<string>> ScriptMatches = new();
-        public List<UDOtherSettings> OtherMatches = new();
+        [Tooltip("Settings for Render scripts")]
+        [MaintainOrder]
+        public UDRenderSettings RenderScriptSettings = new();
+        [Tooltip("Settings for Inventory scripts")]
+        [MaintainOrder]
+        public UDInventorySettings InventoryScriptSettings = new();
     }
 
     public class UDRenderSettings
     {
-        [Tooltip("The DD inventory scripts which match to a single UD render script")]
+        [Tooltip("The DD Inventory scripts which match to a single UD render script")]
         [MaintainOrder]
         public Dictionary<string, HashSet<string>> ScriptMatches = new();
         [Tooltip("Other rules for finding appropriate UD scripts. Applied after initially matching to a UD script.")]
