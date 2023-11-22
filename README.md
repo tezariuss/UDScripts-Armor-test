@@ -1,10 +1,10 @@
 # UDScripts
 
-Various script for [https://github.com/IHateMyKite/UnforgivingDevices](this mod). Currently only has the Patcher.
+Various script for [this mod](https://github.com/IHateMyKite/UnforgivingDevices). Currently only has the Patcher.
 
 ## UDPatcher
 
-Synthesis patcher to patch various DD items to work with UD devices. Functionality is identical to [https://github.com/IHateMyKite/UnforgivingDevices_FOMOD/tree/main](the FOMOD), but with far greater configurability.
+Synthesis patcher to patch various DD items to work with UD devices. Functionality is identical to [the FOMOD](https://github.com/IHateMyKite/UnforgivingDevices_FOMOD/tree/main), but with far greater configurability.
 
 ### How-To (Basic)
 
