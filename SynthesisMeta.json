@@ -1,0 +1,13 @@
+{
+  "Nickname": "Unforgiving Devices Modifiers Patcher",
+  "Visibility": "Visible",
+  "OneLineDescription": "Modifiers patcher for UD 3.0+",
+  "LongDescription": "Interface for adding UD Modifiers to chosen armors",
+  "PreferredAutoVersioning": "Default",
+  "RequiredMods": [
+    "UnforgivingDevices.esp"
+  ],
+  "TargetedReleases": [
+    "SkyrimSE"
+  ]
+}
