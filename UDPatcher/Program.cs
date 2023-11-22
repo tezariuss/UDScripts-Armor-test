@@ -10,6 +10,7 @@ using Noggog;
 using System.Xml.Linq;
 using System.Runtime.CompilerServices;
 using DynamicData.Kernel;
+using System.Reflection;
 
 namespace UDPatcher
 {
@@ -238,19 +239,32 @@ namespace UDPatcher
 
         public static ScriptEntry CopyInvScriptToRender(IScriptEntryGetter original)
         {
-            var VALID_PROP_NAMES = new HashSet<string>() { "deviceInventory", "libs", "zad_DeviousDevice" };
-            var REPLACEMENT_PROP_NAMES = new Dictionary<string, string>() {
-            { "zad_DeviousDevice", "UD_DeviceKeyword"}};
+            var propSettings = Settings.RenderScriptSettings.ScriptValues;
+            var validPropNames = new HashSet<string>(propSettings.Keys);// { "deviceInventory", "libs", "zad_DeviousDevice" };
+            Dictionary<string, string> replacementPropNames = propSettings.Where(setting => setting.Value != null).ToDictionary()!; 
+            //{            { "zad_DeviousDevice", "UD_DeviceKeyword"}};
             var newScript = original.DeepCopy();
-            newScript.Properties.RemoveWhere(prop => !VALID_PROP_NAMES.Contains(prop.Name));
+            newScript.Properties.RemoveWhere(prop => !validPropNames.Contains(prop.Name));
             foreach (var prop in newScript.Properties)
             {
-                if (REPLACEMENT_PROP_NAMES.TryGetValue(prop.Name, out var newName))
+                if (replacementPropNames.TryGetValue(prop.Name, out var newName))
                 {
                     prop.Name = newName;
                 }
             }
             return newScript;
+        }
+
+        public static string? GetUDInvFromZadInv(string zadInvName)
+        {
+            foreach (var rule in Settings.InventoryScriptSettings.ScriptMatches)
+            {
+                if (rule.Value.Contains(zadInvName))
+                {
+                    return rule.Key;
+                }
+            }
+            return null;
         }
 
         public static T DumbRecordGetter<T>(ILinkCache linkCache, ModKey mod, uint formId)
@@ -393,8 +407,15 @@ namespace UDPatcher
                         UDCDProp.Name = "UDCDmain";
                         UDCDProp.Flags = ScriptProperty.Flag.Edited;
                         UDCDProp.Object = udMainQst.ToLink();
-                        
-                        invScript.Name = "UD_CustomDevice_EquipScript";
+
+                        //invScript.Name = "UD_CustomDevice_EquipScript";
+                        var newInvScriptName = GetUDInvFromZadInv(invFinalScript.Name);
+                        if (newInvScriptName == null)
+                        {
+                            Console.WriteLine($"Could not find UD Inventory Script corresponding to {invFinalScript}");
+                            continue;
+                        }
+                        invScript.Name = newInvScriptName;
                         invScript.Properties.Add(UDCDProp);
 
                         var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, invFinalScript.Name);
