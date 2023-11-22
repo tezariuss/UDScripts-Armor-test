@@ -32,6 +32,12 @@ namespace UDPatcher
                 .Run(args);
         }
 
+        /// <summary>
+        /// Using Settings, finds the UD Render script name from the input Inventory script name via simple match.
+        /// Only the input script's name (<paramref name="zadName"/>) is considered.
+        /// </summary>
+        /// <param name="zadName">Name of the input Inventory script</param>
+        /// <returns>Corresponding UD Render script</returns>
         private static string? GetUdScriptNameFromZad(string zadName)
         {
             foreach (var zadGroup in Settings.RenderScriptSettings.ScriptMatches)
@@ -44,11 +50,32 @@ namespace UDPatcher
             return null;
         }
 
+
+        /// <summary>
+        /// Using Settings, finds all extra rules which apply to a UD Render script with name <paramref name="udName"/>
+        /// </summary>
+        /// <param name="udName">UD Render script name</param>
+        /// <returns>All applicable rules</returns>
         private static List<UDOtherSettings> GetOtherRulesFromUd(string udName)
         {
             return Settings.RenderScriptSettings.OtherMatches.FindAll(rule => rule.InputScripts.Contains(udName));
         }
 
+        /// <inheritdoc cref="GetUdScriptNameFromOtherRule(UDOtherSettings, IArmorGetter)" path="//remarks | //returns"/>
+        /// <summary>
+        /// Applies <paramref name="kwRules"/> to given <paramref name="armorKeywords"/> until all have been applied 
+        /// or the <paramref name="kwRules"/> are no longer 
+        /// applicable to the given
+        /// script (i.e. resulting script is no longer among <paramref name="inputScripts"/>)
+        /// 
+        /// </summary>
+        /// <seealso cref="GetUdScriptNameFromKw(UDKwSettings, IEnumerable{IFormLinkGetter{IKeywordGetter}}?)">
+        /// Refer to this method for details on how the rules are applied
+        /// </seealso>
+        /// <param name="kwRules">Rules to apply sequentially</param>
+        /// <param name="inputScripts">Scripts which <paramref name="kwRules"/> apply to</param>
+        /// <param name="armorKeywords">Armor's keywords to apply <paramref name="kwRules"/> to</param>
+        /// <exception cref="Exception">Thrown when applying any rule fails</exception>
         private static string? GetUdScriptNameFromKws(List<UDKwSettings> kwRules, IEnumerable<string> inputScripts, 
             IEnumerable<IFormLinkGetter<IKeywordGetter>>? armorKeywords)
         {
@@ -69,6 +96,14 @@ namespace UDPatcher
             return newName;
         }
 
+        /// <inheritdoc cref="GetUdScriptNameFromOtherRule(UDOtherSettings, IArmorGetter)" path="//remarks | //returns"/>
+        /// <summary>
+        /// Using Settings, applies <paramref name="kwRule"/> to <paramref name="armorKeywords"/> by checking if any Keywords in 
+        /// <paramref name="kwRule"/> are also in <paramref name="armorKeywords"/>.
+        /// </summary>
+        /// <param name="kwRule">Rule to apply</param>
+        /// <param name="armorKeywords">Armor's keywords</param>
+        /// <exception cref="Exception">Throws if <paramref name="kwRule"/> has no OutputScript</exception>
         private static string? GetUdScriptNameFromKw(UDKwSettings kwRule, IEnumerable<IFormLinkGetter<IKeywordGetter>>? armorKeywords)
         {
             if (kwRule.OutputScript == null)
@@ -86,6 +121,13 @@ namespace UDPatcher
             }
         }
 
+        /// <inheritdoc cref="GetUdScriptNameFromOtherRule(UDOtherSettings, IArmorGetter)" path="//remarks | //returns"/>
+        /// <summary>
+        /// Using Settings, applies <paramref name="nameRule"/> to <paramref name="armorName"/> by checking if the Search Text
+        /// is present in <paramref name="armorName"/>
+        /// </summary>
+        /// <param name="nameRule">Rule to apply</param>
+        /// <param name="armorName">Display name of Armor</param>
         private static string? GetUdScriptNameFromSearchRule(UDNameSearchSettings nameRule, string armorName)
         {
             if (armorName.Contains(nameRule.SearchText))
@@ -98,6 +140,17 @@ namespace UDPatcher
             }
         }
 
+        /// <inheritdoc cref="GetUdScriptNameFromOtherRule(UDOtherSettings, IArmorGetter)" path="//remarks | //returns"/>
+        /// <summary>
+        /// Using Settings, applies <paramref name="nameRules"/> to <paramref name="armorName"/> until all have been applied,
+        /// or the rules no longer apply to a resulting script (i.e. it's not among <paramref name="inputScripts"/>)
+        /// </summary>
+        /// <seealso cref="GetUdScriptNameFromSearchRule(UDNameSearchSettings, string)">Refer to 
+        /// this method for details on how each rule is applied</seealso>
+        /// <param name="nameRules">Name Rules to apply</param>
+        /// <param name="inputScripts">UD Render scripts to which these rules apply</param>
+        /// <param name="armorName">Armor's Display Name</param>
+        /// <exception cref="Exception">Throws if it catches from applying a rule</exception>
         private static string? GetUdScriptNameFromSearchRules(IEnumerable<UDNameSearchSettings> nameRules, IEnumerable<string> inputScripts, string armorName)
         {
             string? newUdName = null;
@@ -118,6 +171,15 @@ namespace UDPatcher
             return newUdName;
         }
 
+        /// <inheritdoc cref="GetUdScriptNameFromOtherRules(string, IArmorGetter)" path="//remarks"/>
+        /// <summary>
+        /// Applies all sub-rules of <paramref name="otherRule"/> to <paramref name="armor"/>
+        /// </summary>
+        /// <param name="otherRule">Rule to apply</param>
+        /// <param name="armor">Armor to apply <paramref name="otherRule"/> to</param>
+        /// <returns>New UD Render script name, or <c>null</c> if no rules apply</returns>
+        /// <exception cref="Exception">Throws if <paramref name="otherRule"/> has no input scripts</exception>
+        /// <exception cref="Exception">Throws if any sub-rules throw</exception>
         private static string? GetUdScriptNameFromOtherRule(UDOtherSettings otherRule, IArmorGetter armor)
         {
             var inputScripts = otherRule.InputScripts;
@@ -147,6 +209,18 @@ namespace UDPatcher
             }
         }
 
+        /// <summary>
+        /// Finds all <see cref="UDOtherSettings"/> which apply to <paramref name="udName"/>, applies 
+        /// them sequentially to <paramref name="armor"/> until all have been applied, or the UD
+        /// Render script name has changed
+        /// </summary>
+        /// <remarks>
+        /// Uses <see cref="Settings"/>
+        /// </remarks>
+        /// <param name="udName">Initial name of UD Render script</param>
+        /// <param name="armor">Armor to apply rules to</param>
+        /// <returns>New UD Render script name, or <paramref name="udName"/> if no rules applied</returns>
+        /// <exception cref="Exception">Throws if catches exception from applying rule</exception>
         private static string GetUdScriptNameFromOtherRules(string udName, IArmorGetter armor)
         {
             List<UDOtherSettings> otherRules = GetOtherRulesFromUd(udName);
@@ -167,6 +241,23 @@ namespace UDPatcher
             return udName;
         }
 
+        /// <summary>
+        /// Finds a UD Render script name which corresponds to <paramref name="armor"/> and
+        /// <paramref name="zadName"/> after applying all corresponding rules as defined in
+        /// <see cref="Settings"/>
+        /// </summary>
+        /// <seealso cref="GetUdScriptNameFromZad(string)">
+        /// Refer to this method for how the initial UD Render script name is determined
+        /// from <paramref name="zadName"/>
+        /// </seealso>
+        /// <seealso cref="GetUdScriptNameFromOtherRules(string, IArmorGetter)">
+        /// Refer to this method for how the final UD Render script name is determined from
+        /// the initial UD Render script
+        /// </seealso>
+        /// <param name="armor">Armor to apply rules to</param>
+        /// <param name="zadName">Initial script name ot apply rules to</param>
+        /// <returns>UD Render script name, or <c>null</c> if none could be found</returns>
+        /// <exception cref="Exception">Thrown if rules end up looping</exception>
         public static string? GetUdScriptNameFromArmor(IArmorGetter armor, string zadName)
         {
             var udName = GetUdScriptNameFromZad(zadName);
@@ -193,6 +284,13 @@ namespace UDPatcher
             return newUdName;
         }
 
+        /// <summary>
+        /// Checks if an <see cref="IScriptEntryGetter"/> in <paramref name="armorScripts"/> is
+        /// present in <paramref name="searchScripts"/>
+        /// </summary>
+        /// <param name="armorScripts">Scripts to search in</param>
+        /// <param name="searchScripts">Scripts to search by</param>
+        /// <returns>A script in both <paramref name="armorScripts"/> and <paramref name="searchScripts"/></returns>
         public static IScriptEntryGetter? FindArmorScript(IEnumerable<IScriptEntryGetter> armorScripts,
             IEnumerable<string> searchScripts)
         {
@@ -203,6 +301,10 @@ namespace UDPatcher
             return null;
         }
 
+        /// <summary>
+        /// Searches through all <see cref="Settings"/> to find all UD Render script names
+        /// </summary>
+        /// <returns>All UD Render script names</returns>
         public static HashSet<string> GetAllUdScriptNamesFromSettings()
         {
             var renderSettings = Settings.RenderScriptSettings;
@@ -214,11 +316,25 @@ namespace UDPatcher
             return allNames;
         }
 
+
+        /// <summary>
+        /// Finds all Zad script names in <paramref name="otherSettings"/>
+        /// (based on <see cref="UDOtherSetting.OutputScript"/>)
+        /// </summary>
+        /// <param name="otherSettings">The settings to search through</param>
+        /// <returns>All Zad script names found in <paramref name="otherSettings"/></returns>
         public static HashSet<string> GetZadNamesFromRules(IEnumerable<UDOtherSetting> otherSettings)
         {
             return otherSettings.Select(setting => setting.OutputScript).ToHashSet();
         }
 
+        /// <summary>
+        /// Finds all Zad script names in <see cref="Settings"/>
+        /// </summary>
+        /// <seealso cref="GetZadNamesFromRules(IEnumerable{UDOtherSetting})">
+        /// Refer to this for details on how they are extracted from each set of rules
+        /// </seealso>
+        /// <returns>All Zad script names in all settings</returns>
         public static HashSet<string> GetAllZadScriptNamesFromSettings()
         {
             var renderSettings = Settings.RenderScriptSettings;
@@ -237,6 +353,15 @@ namespace UDPatcher
             return allNames;
         }
 
+        /// <summary>
+        /// Copies an Inventory script (<paramref name="original"/>) into a new Render script
+        /// with appropriate properties
+        /// </summary>
+        /// <remarks>
+        /// These properties are found in <seealso cref="Settings.RenderScriptSettings.ScriptValues"/>
+        /// </remarks>
+        /// <param name="original">The inventory script to copy</param>
+        /// <returns>A new script appropriate for use as a Render script</returns>
         public static ScriptEntry CopyInvScriptToRender(IScriptEntryGetter original)
         {
             var propSettings = Settings.RenderScriptSettings.ScriptValues;
@@ -255,6 +380,15 @@ namespace UDPatcher
             return newScript;
         }
 
+        /// <summary>
+        /// Gets corresponding UD Inventory script name from Zad Inventory script
+        /// name (<paramref name="zadInvName"/>)
+        /// </summary>
+        /// <remarks>
+        /// Uses <see cref="Settings"/> to determine matches
+        /// </remarks>
+        /// <param name="zadInvName">Zad Inventory script name</param>
+        /// <returns>Corresponding UD Inventory script name, or <c>null</c> if none found</returns>
         public static string? GetUDInvFromZadInv(string zadInvName)
         {
             foreach (var rule in Settings.InventoryScriptSettings.ScriptMatches)
@@ -267,7 +401,17 @@ namespace UDPatcher
             return null;
         }
 
-        public static T DumbRecordGetter<T>(ILinkCache linkCache, ModKey mod, uint formId)
+        /// <summary>
+        /// Un-smart record getter for quickly grabbing "constants." Designed
+        /// to throw exception upon failure.
+        /// </summary>
+        /// <typeparam name="T">Getter type</typeparam>
+        /// <param name="linkCache">pre-defined Link Cache</param>
+        /// <param name="mod">mod to search through</param>
+        /// <param name="formId">raw FormID</param>
+        /// <returns>The record in question</returns>
+        public static T DumbRecordGetter<T> (ILinkCache linkCache, ModKey mod, uint formId)
+            where T : ISkyrimMajorRecordGetter
         {
             return linkCache.Resolve(new FormKey(mod, formId), typeof(T)).Cast<T>();
         }
