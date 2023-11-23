@@ -11,6 +11,7 @@ using System.Xml.Linq;
 using System.Runtime.CompilerServices;
 using DynamicData.Kernel;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace UDPatcher
 {
@@ -80,6 +81,7 @@ namespace UDPatcher
             IEnumerable<IFormLinkGetter<IKeywordGetter>>? armorKeywords)
         {
             string? newName = null;
+            var newNames = new SortedList<int, string>();
             foreach (var kwRule in kwRules) { 
                 try
                 {
@@ -88,12 +90,18 @@ namespace UDPatcher
                 {
                     throw new Exception($"Failed on KW rule with output {kwRule.OutputScript}", ex);
                 }
-                if (newName != null && !inputScripts.Contains(newName))
+                if (newName != null)
                 {
-                    return newName;
+                    newNames[-kwRule.Priority] = newName;
                 }
             }
-            return newName;
+            if (!newNames.Any())
+            {
+                return null;
+            } else
+            {
+                return newNames.First().Value;
+            } 
         }
 
         /// <inheritdoc cref="GetUdScriptNameFromOtherRule(UDOtherSettings, IArmorGetter)" path="//remarks | //returns"/>
@@ -109,13 +117,16 @@ namespace UDPatcher
             if (kwRule.OutputScript == null)
             {
                 throw new Exception("Output Script of Keyword Match not defined");
-            } else if (armorKeywords == null) {
+            }
+            else if (armorKeywords == null)
+            {
                 return null;
             }
             else if (kwRule.Keywords.Intersect(armorKeywords).Any())
             {
                 return kwRule.OutputScript;
-            } else
+            }
+            else
             {
                 return null;
             }
@@ -123,16 +134,17 @@ namespace UDPatcher
 
         /// <inheritdoc cref="GetUdScriptNameFromOtherRule(UDOtherSettings, IArmorGetter)" path="//remarks | //returns"/>
         /// <summary>
-        /// Using Settings, applies <paramref name="nameRule"/> to <paramref name="armorName"/> by checking if the Search Text
-        /// is present in <paramref name="armorName"/>
+        /// Using Settings, applies <paramref name="nameRule"/> to <paramref name="armorName"/> by checking if the
+        /// Search Text regular expression
+        /// matches <paramref name="armorName"/>
         /// </summary>
         /// <param name="nameRule">Rule to apply</param>
-        /// <param name="armorName">Display name of Armor</param>
+        /// <param name="armorName">EditorID of Armor</param>
         private static string? GetUdScriptNameFromSearchRule(UDNameSearchSettings nameRule, string armorName)
         {
-            if (armorName.Contains(nameRule.SearchText))
+            if (Regex.IsMatch(armorName, nameRule.SearchText, RegexOptions.IgnoreCase))
             {
-                return nameRule.OutputScript;
+                return nameRule.OutputScript;              
             }
             else
             {
@@ -149,11 +161,12 @@ namespace UDPatcher
         /// this method for details on how each rule is applied</seealso>
         /// <param name="nameRules">Name Rules to apply</param>
         /// <param name="inputScripts">UD Render scripts to which these rules apply</param>
-        /// <param name="armorName">Armor's Display Name</param>
+        /// <param name="armorName">Armor's EditorID</param>
         /// <exception cref="Exception">Throws if it catches from applying a rule</exception>
         private static string? GetUdScriptNameFromSearchRules(IEnumerable<UDNameSearchSettings> nameRules, IEnumerable<string> inputScripts, string armorName)
         {
             string? newUdName = null;
+            var newNames = new SortedList<int, string>();
             foreach (var rule in nameRules)
             {
                 try
@@ -163,12 +176,18 @@ namespace UDPatcher
                 {
                     throw new Exception($"Failed on word '{rule.SearchText}'", ex);
                 }
-                if (newUdName != null && !inputScripts.Contains(newUdName))
+                if (newUdName != null)
                 {
-                    return newUdName;
+                    newNames[-rule.Priority] = newUdName;
                 }
             }
-            return newUdName;
+            if (!newNames.Any())
+            {
+                return null;
+            } else
+            {
+                return newNames.First().Value;
+            }
         }
 
         /// <inheritdoc cref="GetUdScriptNameFromOtherRules(string, IArmorGetter)" path="//remarks"/>
@@ -196,13 +215,16 @@ namespace UDPatcher
             {
                 throw new Exception("Failed to match Keywords", e);
             }
-            if (armor.Name == null || armor.Name.String == null || (newUdName != null && !inputScripts.Contains(newUdName)))
+            if (armor.EditorID == null ||
+                (newUdName != null && !inputScripts.Contains(newUdName)))
             {
                 return newUdName;
             }
             try
             {
-                return GetUdScriptNameFromSearchRules(otherRule.NameMatch, inputScripts, armor.Name.String);
+                var newSearchUdName = GetUdScriptNameFromSearchRules(otherRule.NameMatch, inputScripts,
+                    armor.EditorID);
+                return newSearchUdName ?? newUdName;
             } catch (Exception e)
             {
                 throw new Exception("Failed to match Search rule", e);
@@ -273,7 +295,7 @@ namespace UDPatcher
             while (prevNewUdName != newUdName)
             {
                 prevNewUdName = newUdName;
-                newUdName = GetUdScriptNameFromOtherRules(udName, armor);
+                newUdName = GetUdScriptNameFromOtherRules(newUdName, armor);
                 if (prevNewUdName != newUdName && loopedNames.Contains(newUdName))
                 {
                     throw new Exception($"Found looping rule for Armor {armor} (from Script " +
@@ -436,7 +458,7 @@ namespace UDPatcher
 
             const int UDCDMAINQST_ID = 0x15e73c;
 
-            var shortenedLoadOrder = state.LoadOrder.ListedOrder.Where(
+            var shortenedLoadOrder = state.LoadOrder.PriorityOrder.Where(
                 mod =>
                 Settings.ModsToPatch.Contains(mod.ModKey)
                 );
@@ -444,7 +466,7 @@ namespace UDPatcher
             var shortenedLoadOrderFuller = state.LoadOrder.ListedOrder.Where(mod =>
                 Settings.ModsToPatch.Contains(mod.ModKey) || mod.ModKey == ddiMod || mod.ModKey == udMod
                 );
-            var idLinkCache = shortenedLoadOrderFuller.ToImmutableLinkCache<ISkyrimMod, ISkyrimModGetter>();
+            var idLinkCache = shortenedLoadOrderFuller.ToImmutableLinkCache<ISkyrimMod, ISkyrimModGetter>(LinkCachePreferences.Default);
             IKeywordGetter zadInvKeyword = DumbRecordGetter<IKeywordGetter>(idLinkCache, ddiMod, ZADINVKW_ID);
             IKeywordGetter udInvKeyword = DumbRecordGetter<IKeywordGetter>(idLinkCache, udMod, UDINVKW_ID);
             IKeywordGetter udPatchKw = DumbRecordGetter<IKeywordGetter>(idLinkCache, udMod, UDPATCHKW_ID);
@@ -514,10 +536,10 @@ namespace UDPatcher
                         continue;
                     }
                     IScriptEntryGetter? renderUDScript = null;
-                    if (renderArmor.VirtualMachineAdapter != null)
+                    /*if (renderArmor.VirtualMachineAdapter != null)
                     {
                         renderUDScript = FindArmorScript(renderArmor.VirtualMachineAdapter!.Scripts, UDScripts);
-                    }
+                    }*/
                     var renderArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(renderArmor);
                     if (renderArmorOverride == null)
                     {
@@ -531,6 +553,9 @@ namespace UDPatcher
                     if (renderArmorOverride.VirtualMachineAdapter == null)
                     {
                         renderArmorOverride.VirtualMachineAdapter = new VirtualMachineAdapter();
+                    } else
+                    {
+                        renderUDScript = FindArmorScript(renderArmorOverride.VirtualMachineAdapter!.Scripts, UDScripts);
                     }
                     if (invUDScript == null)
                     {
@@ -569,25 +594,22 @@ namespace UDPatcher
                         var newRenderScript = CopyInvScriptToRender(invFinalScript);
                         newRenderScript.Name = newRenderScriptName;
 
-                        Console.WriteLine($"Created new script: {newRenderScriptName}");
-
                         if (renderUDScript == null)
                         {
                             renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
                             addKeywords(renderArmorOverride);
-                            Console.WriteLine($"Device {renderArmorOverride} patched!");
+                            Console.WriteLine($"---Device {renderArmorOverride} patched!");
                             totalPatched++;
                         } else
                         {
-                            Console.WriteLine($"WARNING: Render device {renderArmor} already has UD script! Creating new render device!");
+                            Console.WriteLine($"WARNING: Render device {renderArmorOverride} already has UD script! Creating new render device!");
                             newDevices++;
-                            var newRenderArmor = state.PatchMod.Armors.DuplicateInAsNewRecord(renderArmor);
+                            var newRenderArmor = state.PatchMod.Armors.DuplicateInAsNewRecord(renderArmorOverride);
                             newRenderArmor.EditorID = newRenderArmor.EditorID + "_AddedRenderDevice";
                             var newRenderArmorScripts = newRenderArmor.VirtualMachineAdapter!.Scripts;
-                            
-                            newRenderArmorScripts[newRenderArmorScripts.FindIndex(script => script == renderUDScript)] = newRenderScript;
-                            invScript.Properties[invScript.Properties.FindIndex(prop => prop.Name == "devideRendered")].Cast<ScriptObjectProperty>().Object = newRenderArmor.ToLink();
-                            Console.WriteLine($"---NEW DEVICE {newRenderArmor} CREATED!---");
+                            newRenderArmorScripts[newRenderArmorScripts.FindIndex(script => script.Name == renderUDScript.Name)] = newRenderScript;
+                            invScript.Properties[invScript.Properties.FindIndex(prop => prop.Name == "deviceRendered")].Cast<ScriptObjectProperty>().Object = newRenderArmor.ToLink();
+                            Console.WriteLine($"------NEW DEVICE {newRenderArmor} CREATED!------");
                         }
                     } else if (renderUDScript == null)
                     {

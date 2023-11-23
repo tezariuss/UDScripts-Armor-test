@@ -70,5 +70,7 @@ namespace UDPatcher
     {
         [Tooltip("The new UD script in case of a match")]
         public string OutputScript = string.Empty;
+        [Tooltip("Priority of the rule being applied (if several rules apply, the highest priority overrules)")]
+        public int Priority = 0;
     }
 }

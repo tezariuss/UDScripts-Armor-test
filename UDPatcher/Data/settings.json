@@ -81,98 +81,114 @@
             "Keywords": [
               "05226C:Devious Devices - Integration.esm"
             ],
-            "OutputScript": "UD_CustomHeavyBondage_RenderScript"
+            "OutputScript": "UD_CustomHeavyBondage_RenderScript",
+            "Priority": 13
           },
           {
             "Keywords": [
               "02AFA3:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomSuit_RenderScript"
+            "OutputScript": "UD_CustomSuit_RenderScript",
+            "Priority": 0
           },
           {
             "Keywords": [
               "003DF7:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomCollar_RenderScript"
+            "OutputScript": "UD_CustomCollar_RenderScript",
+            "Priority": 0
           },
           {
             "Keywords": [
               "027F29:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomBoots_RenderScript"
+            "OutputScript": "UD_CustomBoots_RenderScript",
+            "Priority": 0
           },
           {
             "Keywords": [
               "02AFA2:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomHood_RenderScript"
+            "OutputScript": "UD_CustomHood_RenderScript",
+            "Priority": 2
           },
           {
             "Keywords": [
               "02AFA1:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomGloves_RenderScript"
+            "OutputScript": "UD_CustomGloves_RenderScript",
+            "Priority": 0
           },
           {
             "Keywords": [
               "007EB8:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomGag_RenderScript"
+            "OutputScript": "UD_CustomGag_RenderScript",
+            "Priority": 0
           },
           {
             "Keywords": [
               "011B1A:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomBlindfold_RenderScript"
+            "OutputScript": "UD_CustomBlindfold_RenderScript",
+            "Priority": 0
           },
           {
             "Keywords": [
               "003331:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomPlug_RenderScript"
+            "OutputScript": "UD_CustomPlug_RenderScript",
+            "Priority": 0
           },
           {
             "Keywords": [
               "027F28:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomCorset_RenderScript"
+            "OutputScript": "UD_CustomCorset_RenderScript",
+            "Priority": 0
           },
           {
             "Keywords": [
               "003330:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomBelt_RenderScript"
+            "OutputScript": "UD_CustomBelt_RenderScript",
+            "Priority": 0
           },
           {
             "Keywords": [
               "017C43:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomHarness_RenderScript"
+            "OutputScript": "UD_CustomHarness_RenderScript",
+            "Priority": 0
           },
           {
             "Keywords": [
               "003DFA:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomBra_RenderScript"
+            "OutputScript": "UD_CustomBra_RenderScript",
+            "Priority": 0
           },
           {
             "Keywords": [
               "003DF9:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomArmCuffs_RenderScript"
+            "OutputScript": "UD_CustomArmCuffs_RenderScript",
+            "Priority": 10
           },
           {
             "Keywords": [
               "003DF8:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomLegCuffs_RenderScript"
+            "OutputScript": "UD_CustomLegCuffs_RenderScript",
+            "Priority": 0
           },
           {
             "Keywords": [
               "00CA39:Devious Devices - Assets.esm",
               "023E70:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomPiercing_RenderScript"
+            "OutputScript": "UD_CustomPiercing_RenderScript",
+            "Priority": 0
           }
         ],
         "NameMatch": []
@@ -187,13 +203,15 @@
             "Keywords": [
               "017C43:Devious Devices - Assets.esm"
             ],
-            "OutputScript": "UD_CustomHarness_RenderScript"
+            "OutputScript": "UD_CustomHarness_RenderScript",
+            "Priority": 0
           }
         ],
         "NameMatch": [
           {
-            "SearchText": "Crotch",
-            "OutputScript": "UD_CustomCrotchDevice_RenderScript"
+            "SearchText": "crotch",
+            "OutputScript": "UD_CustomCrotchDevice_RenderScript",
+            "Priority": 0
           }
         ]
       },
@@ -204,12 +222,14 @@
         "KeywordMatch": [],
         "NameMatch": [
           {
-            "SearchText": "(Panel)",
-            "OutputScript": "UD_CustomPanelGag_RenderScript"
+            "SearchText": "panel",
+            "OutputScript": "UD_CustomPanelGag_RenderScript",
+            "Priority": 0
           },
           {
-            "SearchText": "Inflat",
-            "OutputScript": "UD_CustomInflatableGag_RenderScript"
+            "SearchText": "inflat",
+            "OutputScript": "UD_CustomInflatableGag_RenderScript",
+            "Priority": 1
           }
         ]
       },
@@ -220,12 +240,14 @@
         "KeywordMatch": [],
         "NameMatch": [
           {
-            "SearchText": "Grand",
-            "OutputScript": "UD_ControlablePlug_RenderScript"
+            "SearchText": "grand",
+            "OutputScript": "UD_ControlablePlug_RenderScript",
+            "Priority": 0
           },
           {
-            "SearchText": "Inflatable",
-            "OutputScript": "UD_CustomInflatablePlug_RenderScript"
+            "SearchText": "inflat",
+            "OutputScript": "UD_CustomInflatablePlug_RenderScript",
+            "Priority": 0
           }
         ]
       },
@@ -236,8 +258,9 @@
         "KeywordMatch": [],
         "NameMatch": [
           {
-            "SearchText": "Gas",
-            "OutputScript": "UD_CustomGasMask_RenderScript"
+            "SearchText": "gas",
+            "OutputScript": "UD_CustomGasMask_RenderScript",
+            "Priority": 0
           }
         ]
       }
