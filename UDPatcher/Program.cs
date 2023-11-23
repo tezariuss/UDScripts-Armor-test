@@ -436,11 +436,12 @@ namespace UDPatcher
 
             const int UDCDMAINQST_ID = 0x15e73c;
 
-            var shortenedLoadOrder = state.LoadOrder.PriorityOrder.Where(
+            var shortenedLoadOrder = state.LoadOrder.ListedOrder.Where(
                 mod =>
                 Settings.ModsToPatch.Contains(mod.ModKey)
                 );
-            var shortenedLoadOrderFuller = state.LoadOrder.PriorityOrder.Where(mod =>
+            Console.WriteLine($"Our mods: {string.Join(", ", shortenedLoadOrder)}");
+            var shortenedLoadOrderFuller = state.LoadOrder.ListedOrder.Where(mod =>
                 Settings.ModsToPatch.Contains(mod.ModKey) || mod.ModKey == ddiMod || mod.ModKey == udMod
                 );
             var idLinkCache = shortenedLoadOrderFuller.ToImmutableLinkCache<ISkyrimMod, ISkyrimModGetter>();
@@ -474,21 +475,17 @@ namespace UDPatcher
             }
             int totalPatched = 0;
             int newDevices = 0;
-            foreach (var invArmorGetter in shortenedLoadOrder.Armor().WinningOverrides())
+            foreach (IArmorGetter invArmorGetter in shortenedLoadOrder.Armor().WinningOverrides())
             {
-                Console.WriteLine($"Doing Armor {invArmorGetter}");
                 if (invArmorGetter.Keywords == null)
                 {
-                    Console.WriteLine($"{invArmorGetter} has no keywords");
                     continue;
                 } else if (invArmorGetter.VirtualMachineAdapter == null || invArmorGetter.VirtualMachineAdapter.Scripts == null)
                 {
-                    Console.WriteLine($"{invArmorGetter}) has no scripts");
                     continue;
                 }
                 if (invArmorGetter.Keywords.Contains(zadInvKeyword))
                 {
-                    Console.WriteLine("Found zadInvKeyword");
                     // find the script the armour's using
                     var invCurrentScripts = invArmorGetter.VirtualMachineAdapter.Scripts;
                     var invUDScript = FindArmorScript(invCurrentScripts, UDScripts);
@@ -504,11 +501,13 @@ namespace UDPatcher
                         .Where(prop => prop.Name == "deviceRendered")
                         .FirstOrDefault()!
                         .Cast<IScriptObjectPropertyGetter>()
-                        .Object;
+                        .Object
+                        .Cast<IArmorGetter>();
                     IArmorGetter renderArmor;
-                    if (renderDevice.TryResolve<IArmorGetter>(idLinkCache, out var foundArmor))
+                    if (renderDevice.TryResolveContext<ISkyrimMod, ISkyrimModGetter, IArmor, IArmorGetter>(idLinkCache, out var foundArmor))
                     {
-                        renderArmor = foundArmor;
+                        renderArmor = foundArmor.Record;
+                        Console.WriteLine($"using {foundArmor.Record.EditorID} found in {foundArmor.ModKey}");
                     } else
                     {
                         Console.WriteLine($"Invalid render target {renderDevice.FormKey} for inventory item {invArmorGetter.EditorID} ({invArmorGetter.FormKey})");
@@ -552,7 +551,6 @@ namespace UDPatcher
                         UDCDProp.Flags = ScriptProperty.Flag.Edited;
                         UDCDProp.Object = udMainQst.ToLink();
 
-                        //invScript.Name = "UD_CustomDevice_EquipScript";
                         var newInvScriptName = GetUDInvFromZadInv(invFinalScript.Name);
                         if (newInvScriptName == null)
                         {
