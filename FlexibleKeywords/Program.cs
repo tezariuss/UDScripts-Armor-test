@@ -3,6 +3,8 @@ using Mutagen.Bethesda.Synthesis;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Plugins;
+using Noggog;
+using System.Data;
 
 namespace FlexibleKeywords
 {
@@ -27,7 +29,7 @@ namespace FlexibleKeywords
             return matcherOperations.MatchArmor(armor);
         }
 
-        public static HashSet<IFormLinkGetter<IKeywordGetter>> GetValidKeywords(IArmorGetter armor, 
+        public static HashSet<IFormLinkGetter<IKeywordGetter>> GetValidKeywordsToRemove(IArmorGetter armor, 
             IEnumerable<IFormLinkGetter<IKeywordGetter>> keywords)
         {
             var result = new HashSet<IFormLinkGetter<IKeywordGetter>>();
@@ -39,9 +41,62 @@ namespace FlexibleKeywords
             return result;
         }
 
+        public static bool ApplyRuleToArmor(IArmor armor, KeywordRules rule)
+        {
+            if (armor.Keywords == null)
+            {
+                armor.Keywords = new ExtendedList<IFormLinkGetter<IKeywordGetter>>();
+            }
+            var originalKeywords = new HashSet<IFormLinkGetter<IKeywordGetter>>(armor.Keywords);
+            armor.Keywords = armor.Keywords.Union(rule.KeywordsToAdd).ToExtendedList();
+            armor.Keywords.RemoveAll(keyword => rule.KeywordsToRemove.Contains(keyword));
+            return !(originalKeywords.IsProperSubsetOf(armor.Keywords) &&
+                originalKeywords.IsProperSupersetOf(armor.Keywords));
+        }
+
+        public static bool ApplyRulesToArmor(IArmor armor, IEnumerable<KeyValuePair<int, KeywordRules>> rules)
+        {
+            var result = false;
+            foreach (var rule in rules)
+            {
+                if (ApplyRuleToArmor(armor, rule.Value)) result = true;
+            }
+            return result;
+        }
+
+        public static SortedList<int, KeywordRules> GetAllRulesForArmor(IArmorGetter armor, ILinkCache linkCache)
+        {
+            var rules = new SortedList<int, KeywordRules>();
+            foreach (var rule in Settings.Rules)
+            {
+                if (IsArmorMatchedBySetting(armor, rule.MatchingRules, linkCache)) {
+                    rules[rule.Priority] = rule;
+                }
+            }
+            return rules;
+        }
+
+        public static void ProcessArmor(IArmor armor, ILinkCache linkCache)
+        {
+            ApplyRulesToArmor(armor, GetAllRulesForArmor(armor, linkCache));
+        }
+
         public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
-            //Your code here!
+            var shortenedLoadOrder = state.LoadOrder.PriorityOrder
+                .Where(mod => Settings.ModsToPatch.Contains(mod.ModKey));
+
+            var linkCache = state.LoadOrder.ToImmutableLinkCache();
+
+            foreach(var armor in shortenedLoadOrder.Armor().WinningOverrides())
+            {
+                var rules = GetAllRulesForArmor(armor, linkCache);
+                var newArmor = armor.DeepCopy();
+                if (ApplyRulesToArmor(newArmor, rules))
+                {
+                    state.PatchMod.Armors.Add(newArmor);
+                }
+            }
         }
     }
 }
