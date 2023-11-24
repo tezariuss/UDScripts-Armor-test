@@ -511,14 +511,16 @@ namespace UDPatcher
             const string UD_NAME = "UnforgivingDevices.esp";
             ModKey udMod = ModKey.FromFileName(UD_NAME);
 
-            var shortenedLoadOrder = state.LoadOrder.PriorityOrder.Where(
+            var modsToPatch = Settings.ModsToPatch;
+
+            var shortenedLoadOrder = modsToPatch.Any() ? state.LoadOrder.PriorityOrder.Where(
                 mod =>
-                Settings.ModsToPatch.Contains(mod.ModKey)
-                );
+                modsToPatch.Contains(mod.ModKey)
+                ) : state.LoadOrder.PriorityOrder;
             Console.WriteLine($"Our mods: {string.Join(", ", shortenedLoadOrder)}");
-            var shortenedLoadOrderFuller = state.LoadOrder.ListedOrder.Where(mod =>
-                Settings.ModsToPatch.Contains(mod.ModKey) || mod.ModKey == ddiMod || mod.ModKey == udMod
-                );
+            var shortenedLoadOrderFuller = modsToPatch.Any() ? state.LoadOrder.ListedOrder.Where(mod =>
+                modsToPatch.Contains(mod.ModKey) || mod.ModKey == ddiMod || mod.ModKey == udMod
+                ) : state.LoadOrder.ListedOrder;
             var idLinkCache = shortenedLoadOrderFuller.ToImmutableLinkCache<ISkyrimMod, ISkyrimModGetter>(LinkCachePreferences.Default);
 
             var consts = new UDImportantConstantsFound(Settings.IMPORTANTCONSTANTS, idLinkCache);

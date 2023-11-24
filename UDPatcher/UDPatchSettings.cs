@@ -18,6 +18,7 @@ namespace UDPatcher
         [MaintainOrder]
         public bool UseModes = false;
         [MaintainOrder]
+        [Tooltip("Leave this blank to patch the entire load order")]
         public HashSet<ModKey> ModsToPatch = new();
         [MaintainOrder]
         public UDRenderSettings RenderScriptSettings = new();
