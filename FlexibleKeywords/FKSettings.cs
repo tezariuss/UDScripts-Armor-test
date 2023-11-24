@@ -58,6 +58,7 @@ namespace FlexibleKeywords
 
         public bool? MatchKeywords(IArmorGetter armor)
         {
+            if (Keyword.ToString() == string.Empty) return null;
             var keywords = armor.Keywords;
             if (keywords != null)
             {
@@ -76,14 +77,19 @@ namespace FlexibleKeywords
                     }
                 }
             }
-            if (AND) { return false; }
-            return null;
+            return AND ? false : null;
         }
 
         public bool? MatchName(Func<ArmorMatcherOperations, Regex> property, string? armorName)
         {
-            bool result = armorName != null && property(this).IsMatch(armorName);
-            return result ? result : AND ? false : null;
+            if (property(this).ToString() != string.Empty
+                )
+            {
+                return armorName != null && property(this).IsMatch(armorName);
+            } else
+            {
+                return AND ? false : null;
+            }
         }
 
         public bool? MatchManual(IArmorGetter armor)
