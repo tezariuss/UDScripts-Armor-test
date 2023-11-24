@@ -438,6 +438,70 @@ namespace UDPatcher
             return linkCache.Resolve(new FormKey(mod, formId), typeof(T)).Cast<T>();
         }
 
+        public static void AddUDKeywords(IArmor armor, UDImportantConstantsFound consts)
+        {
+            var keywords = new ExtendedList<IKeywordGetter>() { consts.udKw!, consts.udPatchKw! };
+            if (Settings.UseModes)
+            {
+                keywords.Add(consts.udPatchNoModeKw!);
+            }
+            if (armor.Keywords == null)
+            {
+                armor.Keywords = new ExtendedList<IFormLinkGetter<IKeywordGetter>>();
+            }
+            foreach (var keyword in keywords)
+            {
+                var kwLink = keyword.ToLinkGetter();
+                if (!armor.Keywords.Contains(kwLink))
+                {
+                    armor.Keywords.Add(kwLink);
+                }
+            }
+        }
+
+        public static bool IsArmorDD(IArmorGetter armor, IKeywordGetter zadInvKw)
+        {
+            return armor.Keywords != null
+                && armor.VirtualMachineAdapter?.Scripts != null
+                && armor.Keywords.Contains(zadInvKw);
+        }
+
+        public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invScript, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache, IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
+        {
+            var renderDevice = invScript
+                        .Properties
+                        .Where(prop => prop.Name == "deviceRendered")
+                        .FirstOrDefault()!
+                        .Cast<IScriptObjectPropertyGetter>()
+                        .Object
+                        .Cast<IArmorGetter>();
+            IArmorGetter renderArmor;
+            if (renderDevice.TryResolveContext<ISkyrimMod, ISkyrimModGetter, IArmor, IArmorGetter>(linkCache, out var foundArmor))
+            {
+                renderArmor = foundArmor.Record;
+                Console.WriteLine($"using {foundArmor.Record.EditorID} found in {foundArmor.ModKey}");
+            }
+            else
+            {
+                return null;
+                /*Console.WriteLine($"Invalid render target {renderDevice.FormKey} for inventory item {invArmorGetter.EditorID} ({invArmorGetter.FormKey})");
+                continue;*/
+            }
+            var renderArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(renderArmor);
+            if (renderArmorOverride == null)
+            {
+                throw new Exception($"{renderArmor.EditorID} could not be turned into override");
+            } else if (renderArmorOverride.Keywords == null)
+            {
+                renderArmorOverride.Keywords = new ExtendedList<IFormLinkGetter<IKeywordGetter>>();
+            }
+            if (renderArmorOverride.VirtualMachineAdapter == null)
+            {
+                renderArmorOverride.VirtualMachineAdapter = new VirtualMachineAdapter();
+            }
+            return renderArmorOverride;
+        }
+
         public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
             var UDScripts = GetAllUdScriptNamesFromSettings();
@@ -461,138 +525,90 @@ namespace UDPatcher
 
             var consts = new UDImportantConstantsFound(Settings.IMPORTANTCONSTANTS, idLinkCache);
 
-            void addKeywords(Armor armor)
-            {
-                var keywords = new ExtendedList<IKeywordGetter>() { consts.udKw!, consts.udPatchKw! };
-                if (Settings.UseModes)
-                {
-                    keywords.Add(consts.udPatchNoModeKw!);
-                }
-                if (armor.Keywords == null)
-                {
-                    armor.Keywords = new ExtendedList<IFormLinkGetter<IKeywordGetter>>();
-                }
-                foreach (var keyword in keywords)
-                {
-                    var kwLink = keyword.ToLinkGetter();
-                    if (!armor.Keywords.Contains(kwLink))
-                    {
-                        armor.Keywords.Add(kwLink);
-                    }
-                }
-            }
             int totalPatched = 0;
             int newDevices = 0;
             foreach (IArmorGetter invArmorGetter in shortenedLoadOrder.Armor().WinningOverrides())
             {
-                if (invArmorGetter.Keywords == null)
+                if (!IsArmorDD(invArmorGetter, consts.zadInvKeyword!))
                 {
-                    continue;
-                } else if (invArmorGetter.VirtualMachineAdapter == null || invArmorGetter.VirtualMachineAdapter.Scripts == null)
-                {
+                    Console.WriteLine($"{invArmorGetter.EditorID} not DD. Skipping.");
                     continue;
                 }
-                if (invArmorGetter.Keywords.Contains(consts.zadInvKeyword!))
+             
+                // find the script the armour's using
+                var invCurrentScripts = invArmorGetter.VirtualMachineAdapter!.Scripts;
+                var invUDScript = FindArmorScript(invCurrentScripts, UDScripts);
+                var invZadScript = FindArmorScript(invCurrentScripts, zadScripts);
+                var invFinalScript = invZadScript != null ? invZadScript : invUDScript;
+                if (invFinalScript == null)
                 {
-                    // find the script the armour's using
-                    var invCurrentScripts = invArmorGetter.VirtualMachineAdapter.Scripts;
-                    var invUDScript = FindArmorScript(invCurrentScripts, UDScripts);
-                    var invZadScript = FindArmorScript(invCurrentScripts, zadScripts);
-                    var invFinalScript = invZadScript != null ? invZadScript : invUDScript;
-                    if (invFinalScript == null)
+                    throw new Exception($"Could not find any script on {invArmorGetter} despite finding it earlier");
+                }
+
+                var renderArmorOverride = GetRenderArmorOverrideFromInvScript(invFinalScript, idLinkCache, state);
+                if (renderArmorOverride == null)
+                {
+                    Console.WriteLine($"Invalid render target in {invFinalScript.Name} for inventory item {invArmorGetter.EditorID} ({invArmorGetter.FormKey})");
+                    continue;
+                }
+
+                IScriptEntryGetter? renderUDScript = null;
+                renderUDScript = FindArmorScript(renderArmorOverride.VirtualMachineAdapter!.Scripts, UDScripts);
+
+                if (invUDScript == null)
+                {
+                    var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
+                    if (invArmorOverride.VirtualMachineAdapter == null)
                     {
-                        Console.WriteLine("penigs");
-                        continue;
+                        throw new Exception("wtf???");
                     }
-                    var renderDevice = invFinalScript
-                        .Properties
-                        .Where(prop => prop.Name == "deviceRendered")
-                        .FirstOrDefault()!
-                        .Cast<IScriptObjectPropertyGetter>()
-                        .Object
-                        .Cast<IArmorGetter>();
-                    IArmorGetter renderArmor;
-                    if (renderDevice.TryResolveContext<ISkyrimMod, ISkyrimModGetter, IArmor, IArmorGetter>(idLinkCache, out var foundArmor))
+                    if (invArmorOverride.Keywords == null)
                     {
-                        renderArmor = foundArmor.Record;
-                        Console.WriteLine($"using {foundArmor.Record.EditorID} found in {foundArmor.ModKey}");
-                    } else
-                    {
-                        Console.WriteLine($"Invalid render target {renderDevice.FormKey} for inventory item {invArmorGetter.EditorID} ({invArmorGetter.FormKey})");
-                        continue;
+                        invArmorOverride.Keywords = new();
                     }
-                    IScriptEntryGetter? renderUDScript = null;
-                    var renderArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(renderArmor);
-                    if (renderArmorOverride == null)
-                    {
-                        Console.WriteLine("video peningns");
-                        continue;
-                    }
-                    if (renderArmorOverride.Keywords == null)
-                    {
-                        renderArmorOverride.Keywords = new ExtendedList<IFormLinkGetter<IKeywordGetter>>();
-                    }
-                    if (renderArmorOverride.VirtualMachineAdapter == null)
-                    {
-                        renderArmorOverride.VirtualMachineAdapter = new VirtualMachineAdapter();
-                    } else
-                    {
-                        renderUDScript = FindArmorScript(renderArmorOverride.VirtualMachineAdapter!.Scripts, UDScripts);
-                    }
-                    if (invUDScript == null)
-                    {
-                        var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
-                        if (invArmorOverride.VirtualMachineAdapter == null)
-                        {
-                            throw new Exception("wtf???");
-                        }
-                        if (invArmorOverride.Keywords == null)
-                        {
-                            invArmorOverride.Keywords = new();
-                        }
-                        invArmorOverride.Keywords.Add(consts.udInvKeyword!);
-                        var invScript = invArmorOverride.VirtualMachineAdapter.Scripts.Where(script => script.Name == invFinalScript.Name).Single();
+                    invArmorOverride.Keywords.Add(consts.udInvKeyword!);
+                    var invScript = invArmorOverride.VirtualMachineAdapter.Scripts.Where(script => script.Name == invFinalScript.Name).Single();
                         
-                        var UDCDProp = new ScriptObjectProperty();
-                        UDCDProp.Name = "UDCDmain";
-                        UDCDProp.Flags = ScriptProperty.Flag.Edited;
-                        UDCDProp.Object = consts.udMainQst!.ToLink();
+                    var UDCDProp = new ScriptObjectProperty();
+                    UDCDProp.Name = "UDCDmain";
+                    UDCDProp.Flags = ScriptProperty.Flag.Edited;
+                    UDCDProp.Object = consts.udMainQst!.ToLink();
 
-                        var newInvScriptName = GetUDInvFromZadInv(invFinalScript.Name);
-                        if (newInvScriptName == null)
-                        {
-                            Console.WriteLine($"Could not find UD Inventory Script corresponding to {invFinalScript}");
-                            continue;
-                        }
-                        invScript.Name = newInvScriptName;
-                        invScript.Properties.Add(UDCDProp);
+                    var newInvScriptName = GetUDInvFromZadInv(invFinalScript.Name);
+                    if (newInvScriptName == null)
+                    {
+                        Console.WriteLine($"Could not find UD Inventory Script corresponding to {invFinalScript}");
+                        continue;
+                    }
+                    invScript.Name = newInvScriptName;
+                    invScript.Properties.Add(UDCDProp);
 
-                        var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, invFinalScript.Name);
-                        if (newRenderScriptName == null)
-                        {
-                            Console.WriteLine($"Unable to find corresponding renderScript for {invFinalScript.Name} ({renderArmor})");
-                            continue;
-                        }
-                        var newRenderScript = CopyInvScriptToRender(invFinalScript);
-                        newRenderScript.Name = newRenderScriptName;
+                    var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, invFinalScript.Name);
+                    if (newRenderScriptName == null)
+                    {
+                        Console.WriteLine($"Unable to find corresponding renderScript for {invFinalScript.Name} ({renderArmor})");
+                        continue;
+                    }
+                    var newRenderScript = CopyInvScriptToRender(invFinalScript);
+                    newRenderScript.Name = newRenderScriptName;
 
-                        if (renderUDScript == null)
-                        {
-                            renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
-                            addKeywords(renderArmorOverride);
-                            Console.WriteLine($"---Device {renderArmorOverride} patched!");
-                            totalPatched++;
-                        } else
-                        {
-                            Console.WriteLine($"WARNING: Render device {renderArmorOverride} already has UD script! Creating new render device!");
-                            newDevices++;
-                            var newRenderArmor = state.PatchMod.Armors.DuplicateInAsNewRecord(renderArmorOverride);
-                            newRenderArmor.EditorID = newRenderArmor.EditorID + "_AddedRenderDevice";
-                            var newRenderArmorScripts = newRenderArmor.VirtualMachineAdapter!.Scripts;
-                            newRenderArmorScripts[newRenderArmorScripts.FindIndex(script => script.Name == renderUDScript.Name)] = newRenderScript;
-                            invScript.Properties[invScript.Properties.FindIndex(prop => prop.Name == "deviceRendered")].Cast<ScriptObjectProperty>().Object = newRenderArmor.ToLink();
-                            Console.WriteLine($"------NEW DEVICE {newRenderArmor} CREATED!------");
-                        }
+                    if (renderUDScript == null)
+                    {
+                        renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
+                        AddUDKeywords(renderArmorOverride, consts);
+                        Console.WriteLine($"---Device {renderArmorOverride} patched!");
+                        totalPatched++;
+                    } else
+                    {
+                        Console.WriteLine($"WARNING: Render device {renderArmorOverride} already has UD script! Creating new render device!");
+                        newDevices++;
+                        var newRenderArmor = state.PatchMod.Armors.DuplicateInAsNewRecord(renderArmorOverride);
+                        newRenderArmor.EditorID = newRenderArmor.EditorID + "_AddedRenderDevice";
+                        var newRenderArmorScripts = newRenderArmor.VirtualMachineAdapter!.Scripts;
+                        newRenderArmorScripts[newRenderArmorScripts.FindIndex(script => script.Name == renderUDScript.Name)] = newRenderScript;
+                        invScript.Properties[invScript.Properties.FindIndex(prop => prop.Name == "deviceRendered")].Cast<ScriptObjectProperty>().Object = newRenderArmor.ToLink();
+                        Console.WriteLine($"------NEW DEVICE {newRenderArmor} CREATED!------");
+                    }
                     } else if (renderUDScript == null)
                     {
                         Console.WriteLine($"Device with patched INV but not patched REND detected. Patching renderDevice {renderArmor}.");
@@ -604,10 +620,10 @@ namespace UDPatcher
                         var newRenderScript = CopyInvScriptToRender(invFinalScript);
                         newRenderScript.Name = newRenderScriptName;
                         renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
-                        addKeywords(renderArmorOverride);
+                        AddUDKeywords(renderArmorOverride, consts);
                         Console.WriteLine($"Repatched RenderDevice {renderArmor} of InventoryDevice {invArmorGetter}");
                     }
-                }
+                
             }
         }
     }

@@ -98,10 +98,8 @@ namespace UDPatcher
         public UDImportantConstantsFound(UDImportantConstants parent, ILinkCache linkCache)
         {
             LinkCache = linkCache;
-            Console.WriteLine($"---Our properties: {string.Join(", ", parent.GetType().GetFields().Select(prop => prop.Name))}");
             foreach (FieldInfo property in typeof(UDImportantConstants).GetFields())
             {
-                Console.WriteLine($"---{property.FieldType} is keywordgetter? {typeof(IFormLinkGetter<IKeywordGetter>).IsAssignableFrom(property.FieldType)}");
                 if (typeof(IFormLinkGetter<IKeywordGetter>).IsAssignableFrom(property.FieldType))
                 {
                     FunnierFunction<IKeywordGetter>(property, parent);
