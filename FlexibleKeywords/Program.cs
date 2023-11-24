@@ -23,6 +23,12 @@ namespace FlexibleKeywords
                 .Run(args);
         }
 
+        /// <inheritdoc cref="GetAllRulesForArmor(IArmorGetter, ILinkCache)" path="//param"/>
+        /// <summary>
+        /// Checks if <paramref name="matcher"/>'s rules apply to <paramref name="armor"/>
+        /// </summary>
+        /// <param name="matcher">The rule as defined in the settings</param>
+        /// <returns><c>true</c> if we have a match, <c>false</c> otherwise</returns>
         public static bool IsArmorMatchedBySetting(IArmorGetter armor, ArmorMatcher matcher, ILinkCache linkCache)
         {
             var matcherOperations = new ArmorMatcherOperations(matcher, linkCache);
@@ -41,6 +47,12 @@ namespace FlexibleKeywords
             return result;
         }
 
+        /// <summary>
+        /// Applies <paramref name="rule"/> to <paramref name="armor"/> by first adding then removing Keywords, as defined in the <paramref name="rule"/>.
+        /// </summary>
+        /// <param name="armor">Mutable Armor record to apply <paramref name="rules"/> to</param>
+        /// <param name="rule"></param>
+        /// <returns><c>true</c> if <paramref name="armor"/> has been modified, <c>false</c> otherwise.</returns>
         public static bool ApplyRuleToArmor(IArmor armor, KeywordRules rule)
         {
             if (armor.Keywords == null)
@@ -54,6 +66,11 @@ namespace FlexibleKeywords
                 originalKeywords.IsProperSupersetOf(armor.Keywords));
         }
 
+        /// <inheritdoc cref="ApplyRuleToArmor(IArmor, KeywordRules)" path="//returns|//param"/>
+        /// <summary>
+        /// Applies all rules in <paramref name="rules"/> to <paramref name="armor"/> in the given order.
+        /// </summary>
+        /// <param name="rules">The rules in question</param>
         public static bool ApplyRulesToArmor(IArmor armor, IEnumerable<KeyValuePair<int, KeywordRules>> rules)
         {
             var result = false;
@@ -64,6 +81,12 @@ namespace FlexibleKeywords
             return result;
         }
 
+        /// <summary>
+        /// Gets all rules which apply to <paramref name="armor"/>
+        /// </summary>
+        /// <param name="armor">The Armor record to check</param>
+        /// <param name="linkCache">Link cache to retrieve Keywords with</param>
+        /// <returns>All rules which apply to <paramref name="armor"/>, ordered in ascending order by <see cref="KeywordRules.Priority"/></returns>
         public static SortedList<int, KeywordRules> GetAllRulesForArmor(IArmorGetter armor, ILinkCache linkCache)
         {
             var rules = new SortedList<int, KeywordRules>();

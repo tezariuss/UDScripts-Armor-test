@@ -1,8 +1,8 @@
 {
-  "Nickname": "",
+  "Nickname": "Flexible Keywords",
   "Visibility": "Visible",
-  "OneLineDescription": "",
-  "LongDescription": "",
+  "OneLineDescription": "Regex-based Armor Keyword distributor",
+  "LongDescription": "Adds and/or removes Keywords of Armor records from any of the chosen mods based on several per-armor conditions:\n - KeywordRegex : checks if any of the Armor's keywords match this regex \n - EditorIDRegex : checks if the EditorID matches the given regex\n - DisplayNameRegex : checks if the Display Name matches the given regex\n - AND : does not apply the keywords if any one of the provided non-empty rules isn't matched\n There is also an option for just selecting the Armors manually.",
   "PreferredAutoVersioning": "Default",
   "RequiredMods": [],
   "TargetedReleases": [
