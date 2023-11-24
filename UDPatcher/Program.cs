@@ -446,17 +446,8 @@ namespace UDPatcher
             const string DDI_NAME = "Devious Devices - Integration.esm";
             ModKey ddiMod = ModKey.FromFileName(DDI_NAME);
 
-            const int ZADINVKW_ID = 0x02b5f0;
-
             const string UD_NAME = "UnforgivingDevices.esp";
             ModKey udMod = ModKey.FromFileName(UD_NAME);
-
-            const int UDINVKW_ID = 0x1553dd;
-            const int UDPATCHKW_ID = 0x13A977;
-            const int UDKW_ID = 0x11a352;
-            const int UDPATCHNOMODEKW_ID = 0x1579be;
-
-            const int UDCDMAINQST_ID = 0x15e73c;
 
             var shortenedLoadOrder = state.LoadOrder.PriorityOrder.Where(
                 mod =>
@@ -467,20 +458,15 @@ namespace UDPatcher
                 Settings.ModsToPatch.Contains(mod.ModKey) || mod.ModKey == ddiMod || mod.ModKey == udMod
                 );
             var idLinkCache = shortenedLoadOrderFuller.ToImmutableLinkCache<ISkyrimMod, ISkyrimModGetter>(LinkCachePreferences.Default);
-            IKeywordGetter zadInvKeyword = DumbRecordGetter<IKeywordGetter>(idLinkCache, ddiMod, ZADINVKW_ID);
-            IKeywordGetter udInvKeyword = DumbRecordGetter<IKeywordGetter>(idLinkCache, udMod, UDINVKW_ID);
-            IKeywordGetter udPatchKw = DumbRecordGetter<IKeywordGetter>(idLinkCache, udMod, UDPATCHKW_ID);
-            IKeywordGetter udKw = DumbRecordGetter<IKeywordGetter>(idLinkCache, udMod, UDKW_ID);
-            IKeywordGetter udPatchNoModeKw = DumbRecordGetter<IKeywordGetter>(idLinkCache, udMod, UDPATCHNOMODEKW_ID);
 
-            IQuestGetter udMainQst = DumbRecordGetter<IQuestGetter>(idLinkCache, udMod, UDCDMAINQST_ID);
+            var consts = new UDImportantConstantsFound(Settings.IMPORTANTCONSTANTS, idLinkCache);
 
             void addKeywords(Armor armor)
             {
-                var keywords = new ExtendedList<IKeywordGetter>() { udKw, udPatchKw };
+                var keywords = new ExtendedList<IKeywordGetter>() { consts.udKw!, consts.udPatchKw! };
                 if (Settings.UseModes)
                 {
-                    keywords.Add(udPatchNoModeKw);
+                    keywords.Add(consts.udPatchNoModeKw!);
                 }
                 if (armor.Keywords == null)
                 {
@@ -506,7 +492,7 @@ namespace UDPatcher
                 {
                     continue;
                 }
-                if (invArmorGetter.Keywords.Contains(zadInvKeyword))
+                if (invArmorGetter.Keywords.Contains(consts.zadInvKeyword!))
                 {
                     // find the script the armour's using
                     var invCurrentScripts = invArmorGetter.VirtualMachineAdapter.Scripts;
@@ -536,10 +522,6 @@ namespace UDPatcher
                         continue;
                     }
                     IScriptEntryGetter? renderUDScript = null;
-                    /*if (renderArmor.VirtualMachineAdapter != null)
-                    {
-                        renderUDScript = FindArmorScript(renderArmor.VirtualMachineAdapter!.Scripts, UDScripts);
-                    }*/
                     var renderArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(renderArmor);
                     if (renderArmorOverride == null)
                     {
@@ -568,13 +550,13 @@ namespace UDPatcher
                         {
                             invArmorOverride.Keywords = new();
                         }
-                        invArmorOverride.Keywords.Add(udInvKeyword);
+                        invArmorOverride.Keywords.Add(consts.udInvKeyword!);
                         var invScript = invArmorOverride.VirtualMachineAdapter.Scripts.Where(script => script.Name == invFinalScript.Name).Single();
                         
                         var UDCDProp = new ScriptObjectProperty();
                         UDCDProp.Name = "UDCDmain";
                         UDCDProp.Flags = ScriptProperty.Flag.Edited;
-                        UDCDProp.Object = udMainQst.ToLink();
+                        UDCDProp.Object = consts.udMainQst!.ToLink();
 
                         var newInvScriptName = GetUDInvFromZadInv(invFinalScript.Name);
                         if (newInvScriptName == null)

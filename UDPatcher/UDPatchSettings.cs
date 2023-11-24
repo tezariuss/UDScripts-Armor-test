@@ -6,6 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Mutagen.Bethesda.WPF.Reflection.Attributes;
+using Mutagen.Bethesda.Plugins.Cache;
+using System.Reflection;
+using CommandLine;
+using Mutagen.Bethesda;
 
 namespace UDPatcher
 {
@@ -13,15 +17,15 @@ namespace UDPatcher
     {
         [MaintainOrder]
         public bool UseModes = false;
-        [Tooltip("Mods from which to read and patch Armors")]
         [MaintainOrder]
         public HashSet<ModKey> ModsToPatch = new();
-        [Tooltip("Settings for Render scripts")]
         [MaintainOrder]
         public UDRenderSettings RenderScriptSettings = new();
-        [Tooltip("Settings for Inventory scripts")]
         [MaintainOrder]
         public UDInventorySettings InventoryScriptSettings = new();
+        [MaintainOrder]
+        [Tooltip("DO NOT EDIT THESE UNLESS YOU KNOW DAMN WELL WHAT YOU'RE DOING")]
+        public UDImportantConstants IMPORTANTCONSTANTS = new();
     }
 
     public class UDRenderSettings
@@ -29,7 +33,6 @@ namespace UDPatcher
         [Tooltip("The DD Inventory scripts which match to a single UD render script")]
         [MaintainOrder]
         public Dictionary<string, HashSet<string>> ScriptMatches = new();
-        [Tooltip("Other rules for finding appropriate UD scripts. Applied after initially matching to a UD script.")]
         [MaintainOrder]
         public List<UDOtherSettings> OtherMatches = new();
         [Tooltip("Inventory Script values to transfer to render script, and their modified name (leave blank to keep as-is)")]
@@ -48,9 +51,7 @@ namespace UDPatcher
         [Tooltip("This rule will only apply when the matched UD script is one of the following")]
         [MaintainOrder]
         public HashSet<string> InputScripts = new HashSet<string>();
-        [Tooltip("Change UD script based on keywords")]
         public List<UDKwSettings> KeywordMatch = new();
-        [Tooltip("Change UD script based on item name")]
         public List<UDNameSearchSettings> NameMatch = new();
     }
 
@@ -68,9 +69,62 @@ namespace UDPatcher
 
     public abstract class UDOtherSetting
     {
-        [Tooltip("The new UD script in case of a match")]
         public string OutputScript = string.Empty;
         [Tooltip("Priority of the rule being applied (if several rules apply, the highest priority overrules)")]
         public int Priority = 0;
+    }
+
+    public class UDImportantConstants
+    {
+        public IFormLinkGetter<IKeywordGetter> zadInvKeywordGetter = FormLinkGetter<IKeywordGetter>.Null;
+        public IFormLinkGetter<IKeywordGetter> udInvKeywordGetter = FormLinkGetter<IKeywordGetter>.Null;
+        public IFormLinkGetter<IKeywordGetter> udPatchKwGetter = FormLinkGetter<IKeywordGetter>.Null;
+        public IFormLinkGetter<IKeywordGetter> udKwGetter = FormLinkGetter<IKeywordGetter>.Null;
+        public IFormLinkGetter<IKeywordGetter> udPatchNoModeKwGetter = FormLinkGetter<IKeywordGetter>.Null;
+        public IFormLinkGetter<IQuestGetter> udMainQstGetter = FormLinkGetter<IQuestGetter>.Null;
+    }
+    
+    public class UDImportantConstantsFound : UDImportantConstants 
+    { 
+        public IKeywordGetter? zadInvKeyword { get; set; }
+        public IKeywordGetter? udInvKeyword { get; set; }
+        public IKeywordGetter? udPatchKw { get; set; }
+        public IKeywordGetter? udKw { get; private set; }
+        public IKeywordGetter? udPatchNoModeKw { get; set; }
+        public IQuestGetter? udMainQst { get; set; }
+
+        public ILinkCache? LinkCache { get; set; }
+
+        public UDImportantConstantsFound(UDImportantConstants parent, ILinkCache linkCache)
+        {
+            LinkCache = linkCache;
+            Console.WriteLine($"---Our properties: {string.Join(", ", parent.GetType().GetFields().Select(prop => prop.Name))}");
+            foreach (FieldInfo property in typeof(UDImportantConstants).GetFields())
+            {
+                Console.WriteLine($"---{property.FieldType} is keywordgetter? {typeof(IFormLinkGetter<IKeywordGetter>).IsAssignableFrom(property.FieldType)}");
+                if (typeof(IFormLinkGetter<IKeywordGetter>).IsAssignableFrom(property.FieldType))
+                {
+                    FunnierFunction<IKeywordGetter>(property, parent);
+                } else if (typeof(IFormLinkGetter<IQuestGetter>).IsAssignableFrom(property.FieldType))
+                {
+                    FunnierFunction<IQuestGetter>(property, parent);
+                }
+                
+            }
+            
+        }
+
+        private T FunnyFunction<T> (FieldInfo property, UDImportantConstants original) where T : class, ISkyrimMajorRecordGetter
+        {
+            return property.GetValue(original).Cast<IFormLinkGetter<T>>().Resolve(LinkCache!);
+        }
+
+        private void FunnierFunction<T> (FieldInfo property, UDImportantConstants original) where T : class, ISkyrimMajorRecordGetter
+        {
+            GetType()!
+                .GetProperty(property.Name
+                .Replace("Getter", ""))!
+                .SetValue(this, FunnyFunction<T>(property, original));
+        }
     }
 }

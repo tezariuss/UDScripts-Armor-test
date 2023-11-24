@@ -2,7 +2,7 @@
   "Nickname": "Unforgiving Devices Device Patcher",
   "Visibility": "Visible",
   "OneLineDescription": "Patches DD devices for UD",
-  "LongDescription": "Changed DD device scripts to UD scripts, adds keywords, etc.",
+  "LongDescription": "See the README on github for more info.",
   "PreferredAutoVersioning": "Default",
   "RequiredMods": [
     "Devious Devices - Integration.esm",
