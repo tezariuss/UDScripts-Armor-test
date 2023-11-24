@@ -1,6 +1,6 @@
 {
   "UseModes": true,
-  "ModsToPatch": [ ],
+  "ModsToPatch": [],
   "RenderScriptSettings": {
     "ScriptMatches": {
       "UD_CustomDevice_RenderScript": [
@@ -312,5 +312,13 @@
         "zadCorsetBeltScript"
       ]
     }
+  },
+  "IMPORTANTCONSTANTS": {
+    "zadInvKeywordGetter": "02B5F0:Devious Devices - Integration.esm",
+    "udInvKeywordGetter": "1553DD:UnforgivingDevices.esp",
+    "udPatchKwGetter": "13A977:UnforgivingDevices.esp",
+    "udKwGetter": "11A352:UnforgivingDevices.esp",
+    "udPatchNoModeKwGetter": "1579BE:UnforgivingDevices.esp",
+    "udMainQstGetter": "15E73C:UnforgivingDevices.esp"
   }
 }
