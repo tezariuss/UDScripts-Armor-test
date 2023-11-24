@@ -484,8 +484,6 @@ namespace UDPatcher
             else
             {
                 return null;
-                /*Console.WriteLine($"Invalid render target {renderDevice.FormKey} for inventory item {invArmorGetter.EditorID} ({invArmorGetter.FormKey})");
-                continue;*/
             }
             var renderArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(renderArmor);
             if (renderArmorOverride == null)
@@ -586,7 +584,7 @@ namespace UDPatcher
                     var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, invFinalScript.Name);
                     if (newRenderScriptName == null)
                     {
-                        Console.WriteLine($"Unable to find corresponding renderScript for {invFinalScript.Name} ({renderArmor})");
+                        Console.WriteLine($"Unable to find corresponding renderScript for {invFinalScript.Name} ({renderArmorOverride})");
                         continue;
                     }
                     var newRenderScript = CopyInvScriptToRender(invFinalScript);
@@ -611,7 +609,7 @@ namespace UDPatcher
                     }
                     } else if (renderUDScript == null)
                     {
-                        Console.WriteLine($"Device with patched INV but not patched REND detected. Patching renderDevice {renderArmor}.");
+                        Console.WriteLine($"Device with patched INV but not patched REND detected. Patching renderDevice {renderArmorOverride}.");
                         var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, "zadequipscript");
                         if (newRenderScriptName == null)
                         {
@@ -621,7 +619,7 @@ namespace UDPatcher
                         newRenderScript.Name = newRenderScriptName;
                         renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
                         AddUDKeywords(renderArmorOverride, consts);
-                        Console.WriteLine($"Repatched RenderDevice {renderArmor} of InventoryDevice {invArmorGetter}");
+                        Console.WriteLine($"Repatched RenderDevice {renderArmorOverride} of InventoryDevice {invArmorGetter}");
                     }
                 
             }
