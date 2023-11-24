@@ -335,6 +335,7 @@ namespace UDPatcher
             {
                 allNames.UnionWith(otherRule.InputScripts);
             }
+            allNames.UnionWith(Settings.InventoryScriptSettings.ScriptMatches.Keys);
             return allNames;
         }
 
@@ -461,8 +462,10 @@ namespace UDPatcher
 
         public static bool IsArmorDD(IArmorGetter armor, IKeywordGetter zadInvKw)
         {
+            Console.WriteLine($"{armor.Name} has zad keyword? {armor.Keywords != null && armor.Keywords.Contains(zadInvKw)}");
             return armor.Keywords != null
                 && armor.VirtualMachineAdapter?.Scripts != null
+                && armor.VirtualMachineAdapter.Scripts.Any()
                 && armor.Keywords.Contains(zadInvKw);
         }
 
@@ -531,18 +534,19 @@ namespace UDPatcher
             {
                 if (!IsArmorDD(invArmorGetter, consts.zadInvKeyword!))
                 {
-                    Console.WriteLine($"{invArmorGetter.EditorID} not DD. Skipping.");
                     continue;
                 }
-             
+            
                 // find the script the armour's using
                 var invCurrentScripts = invArmorGetter.VirtualMachineAdapter!.Scripts;
+
                 var invUDScript = FindArmorScript(invCurrentScripts, UDScripts);
                 var invZadScript = FindArmorScript(invCurrentScripts, zadScripts);
                 var invFinalScript = invZadScript != null ? invZadScript : invUDScript;
                 if (invFinalScript == null)
                 {
-                    throw new Exception($"Could not find any script on {invArmorGetter} despite finding it earlier");
+                    Console.WriteLine($"{invArmorGetter} has zad Keywords but no zad scripts. Skipping.");
+                    continue;
                 }
 
                 var renderArmorOverride = GetRenderArmorOverrideFromInvScript(invFinalScript, idLinkCache, state);
