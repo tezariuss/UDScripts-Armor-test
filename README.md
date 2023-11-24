@@ -10,6 +10,8 @@ These are Synthesis scripts, so the installation is beyond simple. Instructions 
 
 There may come a time when you need to erase your own configs and replace them with the defaults. The instructions for this may be found [here](https://github.com/Mutagen-Modding/Synthesis/wiki/Installation).
 
+If that does not work, find the relevant `settings.json` in the Data folder of the corresponding project (e.g. [this one](https://github.com/Gamerooni/UDScripts/blob/master/UDPatcher/Data/settings.json) for the UD Patcher) and manually replace the original `settings.json` with it.
+
 ## Projects
 
 There are several Projects in this repository. All will appear as separate patchers in the Synthesis project.
