@@ -6,6 +6,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UDPatcher", "UDPatcher\UDPa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UDModifiers", "UDModifiers\UDModifiers.csproj", "{5BEAEDF4-3E5D-415E-B791-80F3692DA6E1}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlexibleKeywords", "FlexibleKeywords\FlexibleKeywords.csproj", "{88C5D678-48A4-49DF-AD1B-1B727DF9A724}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,10 @@ Global
 		{5BEAEDF4-3E5D-415E-B791-80F3692DA6E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5BEAEDF4-3E5D-415E-B791-80F3692DA6E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5BEAEDF4-3E5D-415E-B791-80F3692DA6E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88C5D678-48A4-49DF-AD1B-1B727DF9A724}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88C5D678-48A4-49DF-AD1B-1B727DF9A724}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88C5D678-48A4-49DF-AD1B-1B727DF9A724}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88C5D678-48A4-49DF-AD1B-1B727DF9A724}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
