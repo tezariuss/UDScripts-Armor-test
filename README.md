@@ -46,16 +46,16 @@ Synthesis patcher for adding or removing keywords from Armors based on various s
 Aside from the manual armor selector, the patcher matches via three main properties:
 
  - Keywords Name
-	- Display Name
-	- Editor ID
+- Display Name
+- Editor ID
 
 All of these are Regex strings (you can find the documentation for that [here](https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference)). Some common examples of how this may be used:
 
  - `word` matches on any occurrence of "word" (e.g. "word", "words", "word salad" but not "wo rd")
-	- `(word|gamer)` matches on any occurrences of "word" or "gamer"
-	- `word(ga|mer)` matches on "wordga" or "wordmer"
-	- `word*` matches on "wor", "word", "wordd", etc. (any number of `d`s)
-	- '.' and '.*' match on any character and any amount of any characters respectively
+- `(word|gamer)` matches on any occurrences of "word" or "gamer"
+- `word(ga|mer)` matches on "wordga" or "wordmer"
+- `word*` matches on "wor", "word", "wordd", etc. (any number of `d`s)
+- '.' and '.*' match on any character and any amount of any characters respectively
 
 If `AND` is checked, it will only apply Keywords to the Armor if every non-empty condition is satisfied. Otherwise, only one of the conditions needs to produce a match.
 
