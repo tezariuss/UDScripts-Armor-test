@@ -558,12 +558,13 @@ namespace UDPatcher
                     var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
                     if (invArmorOverride.VirtualMachineAdapter == null)
                     {
-                        throw new Exception("wtf???");
+                        throw new Exception($"{invArmorOverride} has no VMAD despite {invArmorGetter} having it");
                     }
                     if (invArmorOverride.Keywords == null)
                     {
                         invArmorOverride.Keywords = new();
                     }
+
                     invArmorOverride.Keywords.Add(consts.udInvKeyword!);
                     var invScript = invArmorOverride.VirtualMachineAdapter.Scripts.Where(script => script.Name == invFinalScript.Name).Single();
                         
