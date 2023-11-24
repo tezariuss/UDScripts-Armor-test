@@ -15,7 +15,7 @@ namespace FlexibleKeywords
 {
     public class FKSettings
     {
-        [Tooltip("Will only patch Armors from these mods")]
+        [Tooltip("Will only patch Armors from these mods. Leave empty to patch all mods.")]
         [MaintainOrder]
         public HashSet<ModKey> ModsToPatch = new();
         [Tooltip("These rules will be applied to each Armor")]

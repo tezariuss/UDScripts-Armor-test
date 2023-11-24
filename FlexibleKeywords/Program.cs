@@ -106,8 +106,8 @@ namespace FlexibleKeywords
 
         public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
-            var shortenedLoadOrder = state.LoadOrder.PriorityOrder
-                .Where(mod => Settings.ModsToPatch.Contains(mod.ModKey));
+            var shortenedLoadOrder = Settings.ModsToPatch.Any() ? state.LoadOrder.PriorityOrder
+                .Where(mod => Settings.ModsToPatch.Contains(mod.ModKey)) : state.LoadOrder.PriorityOrder;
 
             var linkCache = state.LoadOrder.ToImmutableLinkCache();
 
