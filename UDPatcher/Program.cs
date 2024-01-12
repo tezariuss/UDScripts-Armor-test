@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using DynamicData.Kernel;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Mutagen.Bethesda.Plugins.Records;
 
 namespace UDPatcher
 {
@@ -154,18 +155,17 @@ namespace UDPatcher
 
         /// <inheritdoc cref="GetUdScriptNameFromOtherRule(UDOtherSettings, IArmorGetter)" path="//remarks | //returns"/>
         /// <summary>
-        /// Using Settings, applies <paramref name="nameRules"/> to <paramref name="armorName"/> until all have been applied,
-        /// or the rules no longer apply to a resulting script (i.e. it's not among <paramref name="inputScripts"/>)
+        /// Using Settings, applies <paramref name="nameRules"/> to <paramref name="armorName"/> until all have been applied.
+        /// The rules are first grouped by <see cref="UDNameSearchSettings.Priority"/>, before the highest priority rule is applied and this result is returned.
         /// </summary>
         /// <seealso cref="GetUdScriptNameFromSearchRule(UDNameSearchSettings, string)">Refer to 
         /// this method for details on how each rule is applied</seealso>
         /// <param name="nameRules">Name Rules to apply</param>
-        /// <param name="inputScripts">UD Render scripts to which these rules apply</param>
         /// <param name="armorName">Armor's EditorID</param>
         /// <exception cref="Exception">Throws if it catches from applying a rule</exception>
-        private static string? GetUdScriptNameFromSearchRules(IEnumerable<UDNameSearchSettings> nameRules, IEnumerable<string> inputScripts, string armorName)
+        private static string? GetUdScriptNameFromSearchRules(IEnumerable<UDNameSearchSettings> nameRules, string armorName)
         {
-            string? newUdName = null;
+            string? newUdName;
             var newNames = new SortedList<int, string>();
             foreach (var rule in nameRules)
             {
@@ -222,7 +222,7 @@ namespace UDPatcher
             }
             try
             {
-                var newSearchUdName = GetUdScriptNameFromSearchRules(otherRule.NameMatch, inputScripts,
+                var newSearchUdName = GetUdScriptNameFromSearchRules(otherRule.NameMatch,
                     armor.EditorID);
                 return newSearchUdName ?? newUdName;
             } catch (Exception e)
@@ -628,7 +628,6 @@ namespace UDPatcher
                         AddUDKeywords(renderArmorOverride, consts);
                         Console.WriteLine($"Repatched RenderDevice {renderArmorOverride} of InventoryDevice {invArmorGetter}");
                     }
-                
             }
         }
     }
