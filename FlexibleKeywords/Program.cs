@@ -50,7 +50,7 @@ namespace FlexibleKeywords
         /// <summary>
         /// Applies <paramref name="rule"/> to <paramref name="armor"/> by first adding then removing Keywords, as defined in the <paramref name="rule"/>.
         /// </summary>
-        /// <param name="armor">Mutable Armor record to apply <paramref name="rules"/> to</param>
+        /// <param name="armor">Mutable Armor record to apply <paramref name="rule"/> to</param>
         /// <param name="rule"></param>
         /// <returns><c>true</c> if <paramref name="armor"/> has been modified, <c>false</c> otherwise.</returns>
         public static bool ApplyRuleToArmor(IArmor armor, KeywordRules rule)

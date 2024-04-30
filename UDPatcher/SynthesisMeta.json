@@ -9,6 +9,8 @@
     "UnforgivingDevices.esp"
   ],
   "TargetedReleases": [
-    "SkyrimSE"
+    "SkyrimSE",
+    "SkyrimVR",
+    "SkyrimSEGog"
   ]
 }
