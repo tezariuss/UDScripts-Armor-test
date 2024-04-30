@@ -388,9 +388,8 @@ namespace UDPatcher
         public static ScriptEntry CopyInvScriptToRender(IScriptEntryGetter original)
         {
             var propSettings = Settings.RenderScriptSettings.ScriptValues;
-            var validPropNames = new HashSet<string>(propSettings.Keys);// { "deviceInventory", "libs", "zad_DeviousDevice" };
-            Dictionary<string, string> replacementPropNames = propSettings.Where(setting => setting.Value != null).ToDictionary()!; 
-            //{            { "zad_DeviousDevice", "UD_DeviceKeyword"}};
+            var validPropNames = new HashSet<string>(propSettings.Keys);
+            Dictionary<string, string> replacementPropNames = propSettings.Where(setting => setting.Value != null).ToDictionary(p => p.Key, p => p.Value!);
             var newScript = original.DeepCopy();
             newScript.Properties.RemoveWhere(prop => !validPropNames.Contains(prop.Name));
             foreach (var prop in newScript.Properties)
