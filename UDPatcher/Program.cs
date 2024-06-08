@@ -524,12 +524,6 @@ namespace UDPatcher
                 "UnforgivingDevices.esp"
             };
 
-/*            const string DDI_NAME = "Devious Devices - Integration.esm";
-            ModKey ddiMod = ModKey.FromFileName(DDI_NAME);
-
-            const string UD_NAME = "UnforgivingDevices.esp";
-            ModKey udMod = ModKey.FromFileName(UD_NAME);*/
-
             var modsToPatch = Settings.ModsToPatch;
 
             var modsToNotPatch = Settings.ModsToNotPatch;
@@ -544,9 +538,6 @@ namespace UDPatcher
                 modsToPatch.Contains(mod.ModKey) && !modsToNotPatch.Contains(mod.ModKey)
                 ) : state.LoadOrder.PriorityOrder.Where(mod => !modsToNotPatch.Contains(mod.ModKey));
             Console.WriteLine($"Found mods:\n{string.Join("\n", shortenedLoadOrder.Reverse())}");
-/*            var shortenedLoadOrderFuller = modsToPatch.Any() ? state.LoadOrder.ListedOrder.Where(mod =>
-                modsToPatch.Contains(mod.ModKey) || mod.ModKey == ddiMod || mod.ModKey == udMod || 
-                ) : state.LoadOrder.ListedOrder;*/
             var shortenedLoadOrderFuller = modsToPatch.Any() ? state.LoadOrder.ListedOrder.Where(mod =>
                 modsToPatch.Contains(mod.ModKey) || MASTER_MODS.Contains(mod.ModKey.ToString())
                 ) : state.LoadOrder.ListedOrder;
