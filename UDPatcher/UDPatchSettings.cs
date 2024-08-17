@@ -1,10 +1,5 @@
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Plugins;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Mutagen.Bethesda.WPF.Reflection.Attributes;
 using Mutagen.Bethesda.Plugins.Cache;
 using System.Reflection;
@@ -105,14 +100,19 @@ namespace UDPatcher
             LinkCache = linkCache;
             foreach (FieldInfo property in typeof(UDImportantConstants).GetFields())
             {
-                if (typeof(IFormLinkGetter<IKeywordGetter>).IsAssignableFrom(property.FieldType))
+                try
                 {
-                    FunnierFunction<IKeywordGetter>(property, parent);
-                } else if (typeof(IFormLinkGetter<IQuestGetter>).IsAssignableFrom(property.FieldType))
-                {
-                    FunnierFunction<IQuestGetter>(property, parent);
+                    if (typeof(IFormLinkGetter<IKeywordGetter>).IsAssignableFrom(property.FieldType))
+                    {
+                        FunnierFunction<IKeywordGetter>(property, parent);
+                    }
+                    else if (typeof(IFormLinkGetter<IQuestGetter>).IsAssignableFrom(property.FieldType))
+                    {
+                        FunnierFunction<IQuestGetter>(property, parent);
+                    }
+                } catch (Exception ex) {
+                    throw new Exception($"Could not resolve constant {property.Name}. Check the troubleshooting guide to fix your settings.", ex);
                 }
-                
             }
             
         }

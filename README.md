@@ -57,6 +57,12 @@ Take, for example, a sample Armor with `UD` script `UD_test` and two keywords: `
 
 The script would then first change `UD_test` to `UD_test1`, then change `UD_test1` to `UD_test2`. It would put our Armor through the hoops again, and when it finds that nothing has changed, we'll get our final script `UD_test2`.
 
+#### Troubleshooting
+
+If you encounter any issues, the first thing you should check is UDScript's Settings in Synthesis. There's a good chance that your issues are caused by missing Settings.
+
+To resolve this, download [this](https://github.com/Gamerooni/UDScripts/blob/master/UDPatcher/Data/settings.json) file and drop it into the folder outlined [here](https://github.com/Mutagen-Modding/Synthesis/wiki/User-Input#user-data-folder) (i.e. your Synthesis data folder).
+
 ### FlexibleKeywords
 
 Synthesis patcher for adding or removing keywords from Armors based on various settings.
