@@ -698,7 +698,7 @@ namespace UDPatcher
                 }
                 Console.WriteLine("---------------------------------------------");
             }
-            Console.WriteLine("\n\n");
+            Console.WriteLine("\n");
         }
     }
 }
