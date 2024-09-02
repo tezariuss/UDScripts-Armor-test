@@ -550,8 +550,17 @@ namespace UDPatcher
 
             int totalPatched = 0;
             int newDevices = 0;
-            foreach (IArmorGetter invArmorGetter in shortenedLoadOrder.Armor().WinningOverrides())
+            var skippedDevices = new Dictionary<ModKey, IDictionary<string, IArmorGetter>>();
+            foreach (var invArmorGetterContext in shortenedLoadOrder.Armor().WinningContextOverrides())
             {
+                var invArmorGetter = invArmorGetterContext.Record;
+                var invModKey = invArmorGetterContext.ModKey;
+
+                if (invArmorGetter == null )
+                {
+                    Console.WriteLine("piss");
+                    continue;
+                }
                 if (!IsArmorDD(invArmorGetter, consts.zadInvKeyword!))
                 {
                     continue;
@@ -568,6 +577,14 @@ namespace UDPatcher
                 var invUDScript = FindArmorScript(invCurrentScripts, UDScripts);
                 var invZadScript = FindArmorScript(invCurrentScripts, zadScripts);
                 var invFinalScript = invZadScript != null ? invZadScript : invUDScript;
+
+                // pre-emptively add the armor to the skipped bin
+                if (!skippedDevices.ContainsKey(invModKey))
+                {
+                    skippedDevices.Add(invArmorGetterContext.ModKey, new SortedList<string, IArmorGetter>());
+                }
+                skippedDevices[invModKey].Add(invArmorGetter.EditorID!, invArmorGetter);
+                
                 if (invFinalScript == null)
                 {
                     Console.WriteLine($"{invArmorGetter} has zad Keywords but no zad scripts. Skipping.");
@@ -639,21 +656,49 @@ namespace UDPatcher
                         invScript.Properties[invScript.Properties.FindIndex(prop => prop.Name == "deviceRendered")].Cast<ScriptObjectProperty>().Object = newRenderArmor.ToLink();
                         Console.WriteLine($"------NEW DEVICE {newRenderArmor} CREATED!------");
                     }
-                    } else if (renderUDScript == null)
+
+                    // un-skip device if it was patched
+                    skippedDevices[invModKey].Remove(invArmorGetter.EditorID!);
+                } else if (renderUDScript == null)
+                {
+                    Console.WriteLine($"Device with patched INV but not patched REND detected. Patching renderDevice {renderArmorOverride}.");
+                    var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, "zadequipscript");
+                    if (newRenderScriptName == null)
                     {
-                        Console.WriteLine($"Device with patched INV but not patched REND detected. Patching renderDevice {renderArmorOverride}.");
-                        var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, "zadequipscript");
-                        if (newRenderScriptName == null)
-                        {
-                            continue;
-                        }
-                        var newRenderScript = CopyInvScriptToRender(invFinalScript);
-                        newRenderScript.Name = newRenderScriptName;
-                        renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
-                        AddUDKeywords(renderArmorOverride, consts);
-                        Console.WriteLine($"Repatched RenderDevice {renderArmorOverride} of InventoryDevice {invArmorGetter}");
+                        continue;
                     }
+                    var newRenderScript = CopyInvScriptToRender(invFinalScript);
+                    newRenderScript.Name = newRenderScriptName;
+                    renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
+                    AddUDKeywords(renderArmorOverride, consts);
+                    Console.WriteLine($"Repatched RenderDevice {renderArmorOverride} of InventoryDevice {invArmorGetter}");
+
+                    // un-skip device if it was patched
+                    skippedDevices[invModKey].Remove(invArmorGetter.EditorID!);
+                }
             }
+            Console.WriteLine("===========================Finished patching===========================\n\n"
+                + $"Devices Patched: {totalPatched}\n"
+                + $"New Devices Created: {newDevices}\n"
+                + $"Devices Skipped: {skippedDevices.Sum(x => x.Value.Count)}\n");
+
+            Console.WriteLine("----------------------------------------------------------------------");
+            foreach (var key in skippedDevices.Keys)
+            {
+                var armorList = skippedDevices[key];
+                if (armorList.Count == 0)
+                {
+                    continue;
+                }
+                Console.WriteLine($"|\t{armorList.Count} in {key}:");
+                Console.WriteLine("----------------------------------------------------------------------");
+                foreach (var armor in armorList)
+                {
+                    Console.WriteLine(armor.Key);
+                }
+                Console.WriteLine("----------------------------------------------------------------------");
+            }
+            Console.WriteLine("\n");
         }
     }
 }
