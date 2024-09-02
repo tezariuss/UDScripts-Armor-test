@@ -550,9 +550,7 @@ namespace UDPatcher
 
             int totalPatched = 0;
             int newDevices = 0;
-            //var skippedDevices = new List<IModContext<ISkyrimMod, ISkyrimModGetter, IArmor, IArmorGetter>>();
             var skippedDevices = new Dictionary<ModKey, IDictionary<string, IArmorGetter>>();
-            //foreach (IArmorGetter invArmorGetter in shortenedLoadOrder.Armor().WinningOverrides())
             foreach (var invArmorGetterContext in shortenedLoadOrder.Armor().WinningContextOverrides())
             {
                 var invArmorGetter = invArmorGetterContext.Record;
@@ -580,6 +578,7 @@ namespace UDPatcher
                 var invZadScript = FindArmorScript(invCurrentScripts, zadScripts);
                 var invFinalScript = invZadScript != null ? invZadScript : invUDScript;
 
+                // pre-emptively add the armor to the skipped bin
                 if (!skippedDevices.ContainsKey(invModKey))
                 {
                     skippedDevices.Add(invArmorGetterContext.ModKey, new SortedList<string, IArmorGetter>());
