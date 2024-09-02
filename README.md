@@ -1,6 +1,6 @@
 # UDScripts
 
-Various script for [this mod](https://github.com/IHateMyKite/UnforgivingDevices). Currently functional parts include the Patcher and Flexible Keywords.
+Various scripts for [this mod](https://github.com/IHateMyKite/UnforgivingDevices). Currently, only the Patcher and Flexible Keywords are functional.
 
 ## Installation
 
@@ -12,7 +12,7 @@ There may come a time when you need to erase your own configs and replace them w
 
 If that does not work, find the relevant `settings.json` in the Data folder of the corresponding project (e.g. [this one](https://github.com/Gamerooni/UDScripts/blob/master/UDPatcher/Data/settings.json) for the UD Patcher) and manually replace the original `settings.json` with it.
 
-**Important**: Ensure you do all of the above when Synthesis is closed. If it's open, it will undo your changes.
+**Important**: Ensure you do all the above when Synthesis is closed. If it's open, it will undo your changes.
 
 ## Projects
 
@@ -20,20 +20,22 @@ There are several Projects in this repository. All will appear as separate patch
 
 ### UDPatcher
 
-Synthesis patcher to patch various DD items to work with UD devices. Functionality is identical to [the FOMOD](https://github.com/IHateMyKite/UnforgivingDevices_FOMOD/tree/main), but with far greater configurability.
+Synthesis patcher to patch various DD items to work with UD devices. Functionality is identical to [the FOMOD](https://github.com/IHateMyKite/UnforgivingDevices_FOMOD/tree/main) but with far greater configurability.
 
 #### How-To (Basic)
 
-1. Select the mods you wish to patch in the Settings (as well as any other mods these mods pull relevant records from - not necessarily the masters)
-1. Set the other Settings as desired (the Default settings should account for all DD devices)
-1. Run the Synthesis patcher with only this patcher selected
-1. Rename the resulting patch in xEdit to an appropriate name
+1. Near the top left corner of Synthesis, next to the '+,' create a new Group. Name it something appropriate, such as `UDPatches`; the outputted `.esp` will use this name.
+1. On the right pane, choose all the mods to blacklist. You don't need to choose every mod in your modlist - just the ones you find important to exclude from the Patcher's prying gaze.
+1. Add the Patcher to this new group.
+1. In the Patcher's right pane, click Settings. Scroll down to ensure they're not completely empty - if absolutely none of the values are filled in, check the Troubleshooting section of this guide for a fix.
+1. Add all the mods you want to patch to Mods to Patch. In almost every case, this will be the only setting you change.
+1. Run the Patcher! If the patcher informs you that some devices were skipped, keep in mind that this isn't the fault of you or the patcher. Some mods create Devices with custom scripts that cannot be automatically converted into a UD-friendly format. The patch, in this case, must instead be crafted manually.
 
-Alternatively, you can simply run the patcher along other Synthesis scripts and leave everything in the one `Synthesis.esp`.
+Alternatively, you can run eschew steps 1 through 3 to run the patcher alongside other Synthesis scripts. The resulting patched Devices you'll find in `Synthesis.esp`.
 
 #### How-To (Advanced)
 
-There are several moving parts which determine how an item gets patched. Let's start with the simplest one, and just go down the list.
+There are several moving parts that determine how an item gets patched. Let's start with the simplest one and go down the list.
 
  - **Inventory Script Settings**
 	- *Script Matches*: Each `zad` inventory script will be replaced by the `UD` inventory script it's in. In the default settings, for example, all `zad` scripts will be replaced by `UD_CustomDevice_EquipScript`.
@@ -53,13 +55,13 @@ There are several moving parts which determine how an item gets patched. Let's s
  
 One thing to note: if the `UD` script gets changed by any **Other Match**, it gets fed back into these matches until it comes out unchanged.
 
-Take, for example, a sample Armor with `UD` script `UD_test` and two keywords: `test1` and `test2`. Suppose there are two **Other Matches**, one of which takes `UD_test` and changes the `UD` script to `UD_test1` if an Armor has the `test1` keyword, and the other takes `UD_test1` and does the same with `test2`.
+Take, for example, a sample Armor with the `UD` script `UD_test` and two keywords: `test1` and `test2`. Suppose there are two **Other Matches**, one of which takes `UD_test` and changes the `UD` script to `UD_test1` if an Armor has the `test1` keyword, and the other takes `UD_test1` and does the same with `test2`.
 
-The script would then first change `UD_test` to `UD_test1`, then change `UD_test1` to `UD_test2`. It would put our Armor through the hoops again, and when it finds that nothing has changed, we'll get our final script `UD_test2`.
+The script would then first change `UD_test` to `UD_test1`, then change `UD_test1` to `UD_test2`. It would put our Armor through the hoops again, and when it finds that nothing has changed, we'll get our final script, `UD_test2`.
 
 #### Troubleshooting
 
-If you encounter any issues, the first thing you should check is UDScript's Settings in Synthesis. There's a good chance that your issues are caused by missing Settings.
+If you encounter any issues, you should first check UDScript's Settings in Synthesis. There's a good chance that your issues are caused by missing Settings.
 
 To resolve this, download [this](https://github.com/Gamerooni/UDScripts/blob/master/UDPatcher/Data/settings.json) file and drop it into the folder outlined [here](https://github.com/Mutagen-Modding/Synthesis/wiki/User-Input#user-data-folder) (i.e. your Synthesis data folder).
 
@@ -87,7 +89,7 @@ All of these are Regex strings (you can find the documentation for that [here](h
 - `(word|gamer)` matches on any occurrences of "word" or "gamer"
 - `word(ga|mer)` matches on "wordga" or "wordmer"
 - `word*` matches on "wor", "word", "wordd", etc. (any number of `d`s)
-- `.` and `.*` match on any character and any amount of any characters respectively
+- `.` and `.*` match on any character and any amount of any characters, respectively
 
 If `AND` is checked, it will only apply Keywords to the Armor if every non-empty condition is satisfied. Otherwise, only one of the conditions needs to produce a match.
 
