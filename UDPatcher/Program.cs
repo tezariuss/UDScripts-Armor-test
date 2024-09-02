@@ -695,7 +695,7 @@ namespace UDPatcher
                 {
                     Console.WriteLine(armor.Key);
                 }
-                Console.WriteLine("---------------------------------------------");
+                Console.WriteLine("=============================================");
             }
         }
     }
