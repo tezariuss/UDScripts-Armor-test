@@ -689,13 +689,13 @@ namespace UDPatcher
                 {
                     continue;
                 }
-                Console.WriteLine($"{armorList.Count} in {key}:");
+                Console.WriteLine($"|\t{armorList.Count} in {key}:");
                 Console.WriteLine("---------------------------------------------");
                 foreach (var armor in armorList)
                 {
                     Console.WriteLine(armor.Key);
                 }
-                Console.WriteLine("=============================================");
+                Console.WriteLine("---------------------------------------------");
             }
         }
     }
