@@ -682,7 +682,7 @@ namespace UDPatcher
                 + $"New Devices Created: {newDevices}\n"
                 + $"Devices Skipped: {skippedDevices.Sum(x => x.Value.Count)}\n");
 
-            Console.WriteLine("---------------------------------------------");
+            Console.WriteLine("----------------------------------------------------------------------");
             foreach (var key in skippedDevices.Keys)
             {
                 var armorList = skippedDevices[key];
@@ -691,12 +691,12 @@ namespace UDPatcher
                     continue;
                 }
                 Console.WriteLine($"|\t{armorList.Count} in {key}:");
-                Console.WriteLine("---------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
                 foreach (var armor in armorList)
                 {
                     Console.WriteLine(armor.Key);
                 }
-                Console.WriteLine("---------------------------------------------");
+                Console.WriteLine("----------------------------------------------------------------------");
             }
             Console.WriteLine("\n");
         }
