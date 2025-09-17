@@ -681,17 +681,17 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
                 renderUDScript = FindArmorScript(renderArmorOverride.VirtualMachineAdapter!.Scripts, UDScripts);
 
                 if (invUDScript == null)
-                {
-        var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
-        
-        // 2. Применяем armor rating по deviceName
-        var deviceName = GetDeviceNameFromScript(invFinalScript);
-        if (!string.IsNullOrEmpty(deviceName))
-        {
-            ApplyArmorRatingByDeviceName(invArmorOverride, deviceName);
-        }
-    
-    // 3. Затем изменяем скрипты и keywords
+{
+    var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
+
+    // Применяем armor rating по deviceName
+    var deviceName = GetDeviceNameFromScript(invFinalScript);
+    if (!string.IsNullOrEmpty(deviceName))
+    {
+        ApplyArmorRatingByDeviceName(invArmorOverride, deviceName);
+    }
+
+    // Затем изменяем скрипты и keywords
     if (invArmorOverride.VirtualMachineAdapter == null)
     {
         throw new Exception($"{invArmorOverride} has no VMAD despite {invArmorGetter} having it");
@@ -703,77 +703,94 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
 
     invArmorOverride.Keywords.Add(consts.udInvKeyword!);
     var invScript = invArmorOverride.VirtualMachineAdapter.Scripts.Where(script => script.Name == invFinalScript.Name).Single();
-        
+
     var UDCDProp = new ScriptObjectProperty();
     UDCDProp.Name = "UDCDmain";
     UDCDProp.Flags = ScriptProperty.Flag.Edited;
     UDCDProp.Object = consts.udMainQst!.ToLink();
 
+    var newInvScriptName = GetUDInvFromZadInv(invFinalScript.Name);
+                    
     if (newInvScriptName == null)
     {
         Console.WriteLine($"Could not find UD Inventory Script corresponding to {invFinalScript}");
         continue;
     }
+
     invScript.Name = newInvScriptName;
     invScript.Properties.Add(UDCDProp);
 
-                    var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, invFinalScript.Name);
-                    if (newRenderScriptName == null)
-                    {
-                        Console.WriteLine($"Unable to find corresponding renderScript for {invFinalScript.Name} ({renderArmorOverride})");
-                        continue;
-                    }
-                    var newRenderScript = CopyInvScriptToRender(invFinalScript);
-                    newRenderScript.Name = newRenderScriptName;
+    var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, invFinalScript.Name);
+    if (newRenderScriptName == null)
+    {
+        Console.WriteLine($"Unable to find corresponding renderScript for {invFinalScript.Name} ({renderArmorOverride})");
+        continue;
+    }
 
-                    if (renderUDScript == null)
-                    {
-                        renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
-                        AddUDKeywords(renderArmorOverride, consts);
-                        var renderDeviceName = GetDeviceNameFromScript(newRenderScript); // или renderUDScript, если уже есть
-                        if (!string.IsNullOrEmpty(renderDeviceName))
-                        {
-                            ApplyArmorRatingByDeviceName(renderArmorOverride, renderDeviceName);
-                        }
-                        Console.WriteLine($"---Device {renderArmorOverride} patched!");
-                        totalPatched++;
-                    } else
-                    {
-                        Console.WriteLine($"WARNING: Render device {renderArmorOverride} already has UD script! Creating new render device!");
-                        newDevices++;
-                        var newRenderArmor = state.PatchMod.Armors.DuplicateInAsNewRecord(renderArmorOverride);
-                        newRenderArmor.EditorID = newRenderArmor.EditorID + "_AddedRenderDevice";
-                        var newRenderArmorScripts = newRenderArmor.VirtualMachineAdapter!.Scripts;
-                        newRenderArmorScripts[newRenderArmorScripts.FindIndex(script => script.Name == renderUDScript.Name)] = newRenderScript;
-                        invScript.Properties[invScript.Properties.FindIndex(prop => prop.Name == "deviceRendered")].Cast<ScriptObjectProperty>().Object = newRenderArmor.ToLink();
-                        Console.WriteLine($"------NEW DEVICE {newRenderArmor} CREATED!------");
-                        ApplyArmorRatingByScript(newRenderArmor, newRenderScriptName);
-                    }
+    var newRenderScript = CopyInvScriptToRender(invFinalScript);
+    newRenderScript.Name = newRenderScriptName;
 
-                    // un-skip device if it was patched
-                    skippedDevices[invModKey].Remove(invArmorGetter.EditorID!);
-                } else if (renderUDScript == null)
-                {
-                    Console.WriteLine($"Device with patched INV but not patched REND detected. Patching renderDevice {renderArmorOverride}.");
-                    var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, "zadequipscript");
-                    if (newRenderScriptName == null)
-                    {
-                        continue;
-                    }
-                    var newRenderScript = CopyInvScriptToRender(invFinalScript);
-                    newRenderScript.Name = newRenderScriptName;
-                    renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
-                    AddUDKeywords(renderArmorOverride, consts);
-                    var renderDeviceName = GetDeviceNameFromScript(newRenderScript);
-                    if (!string.IsNullOrEmpty(renderDeviceName))
-                    {
-                        ApplyArmorRatingByDeviceName(newRenderArmor, renderDeviceName);
-                    }
-                    Console.WriteLine($"Repatched RenderDevice {renderArmorOverride} of InventoryDevice {invArmorGetter}");
+    if (renderUDScript == null)
+    {
+        renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
+        AddUDKeywords(renderArmorOverride, consts);
 
-                    // un-skip device if it was patched
-                    skippedDevices[invModKey].Remove(invArmorGetter.EditorID!);
-                }
+        // Применяем броню для рендер-девайса
+        var renderDeviceName = GetDeviceNameFromScript(newRenderScript);
+        if (!string.IsNullOrEmpty(renderDeviceName))
+        {
+            ApplyArmorRatingByDeviceName(renderArmorOverride, renderDeviceName);
+        }
+
+        Console.WriteLine($"---Device {renderArmorOverride} patched!");
+        totalPatched++;
+    }
+    else
+    {
+        Console.WriteLine($"WARNING: Render device {renderArmorOverride} already has UD script! Creating new render device!");
+        newDevices++;
+        var newRenderArmor = state.PatchMod.Armors.DuplicateInAsNewRecord(renderArmorOverride);
+        newRenderArmor.EditorID = newRenderArmor.EditorID + "_AddedRenderDevice";
+        var newRenderArmorScripts = newRenderArmor.VirtualMachineAdapter!.Scripts;
+        newRenderArmorScripts[newRenderArmorScripts.FindIndex(script => script.Name == renderUDScript.Name)] = newRenderScript;
+        invScript.Properties[invScript.Properties.FindIndex(prop => prop.Name == "deviceRendered")].Cast<ScriptObjectProperty>().Object = newRenderArmor.ToLink();
+        Console.WriteLine($"------NEW DEVICE {newRenderArmor} CREATED!------");
+
+        // Применяем броню для НОВОГО рендер-девайса
+        var renderDeviceName = GetDeviceNameFromScript(newRenderScript);
+        if (!string.IsNullOrEmpty(renderDeviceName))
+        {
+            ApplyArmorRatingByDeviceName(newRenderArmor, renderDeviceName);
+        }
+    }
+
+    // un-skip device if it was patched
+    skippedDevices[invModKey].Remove(invArmorGetter.EditorID!);
+} else if (renderUDScript == null)
+{
+    Console.WriteLine($"Device with patched INV but not patched REND detected. Patching renderDevice {renderArmorOverride}.");
+    var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, "zadequipscript");
+    if (newRenderScriptName == null)
+    {
+        continue;
+    }
+    var newRenderScript = CopyInvScriptToRender(invFinalScript);
+    newRenderScript.Name = newRenderScriptName;
+    renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
+    AddUDKeywords(renderArmorOverride, consts);
+
+    // Применяем броню для СУЩЕСТВУЮЩЕГО рендер-девайса (renderArmorOverride)
+    var renderDeviceName = GetDeviceNameFromScript(newRenderScript);
+    if (!string.IsNullOrEmpty(renderDeviceName))
+    {
+        ApplyArmorRatingByDeviceName(renderArmorOverride, renderDeviceName); // ✅ Исправлено: newRenderArmor → renderArmorOverride
+    }
+
+    Console.WriteLine($"Repatched RenderDevice {renderArmorOverride} of InventoryDevice {invArmorGetter}");
+
+    // un-skip device if it was patched
+    skippedDevices[invModKey].Remove(invArmorGetter.EditorID!);
+}
             }
             Console.WriteLine("===========================Finished patching===========================\n\n"
                 + $"Devices Patched: {totalPatched}\n"
