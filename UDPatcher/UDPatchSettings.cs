@@ -6,7 +6,7 @@ using System.Reflection;
 using CommandLine;
 using Mutagen.Bethesda;
 
-namespace UDPatcherV2
+namespace UDPatcher
 {
     public class UDPatchSettings
     {
