@@ -400,6 +400,12 @@ namespace UDPatcherV2
                     prop.Name = newName;
                 }
             }
+            var deviceNameProp = original.Properties.FirstOrDefault(p => p.Name == "deviceName");
+            if (deviceNameProp != null)
+            {
+                newScript.Properties.Add(deviceNameProp.DeepCopy());
+            }
+        
             return newScript;
         }
 
@@ -685,11 +691,11 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
     var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
 
     // Применяем armor rating по deviceName
-    var deviceName = GetDeviceNameFromScript(invFinalScript);
+    /*var deviceName = GetDeviceNameFromScript(invFinalScript);
     if (!string.IsNullOrEmpty(deviceName))
     {
         ApplyArmorRatingByDeviceName(invArmorOverride, deviceName);
-    }
+    }*/
 
     // Затем изменяем скрипты и keywords
     if (invArmorOverride.VirtualMachineAdapter == null)
