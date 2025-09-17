@@ -136,15 +136,12 @@ namespace UDPatcherV2
         }
     }
 
-    public class ArmorRatingSettings
-    {
-        [Tooltip("Enable armor rating modification based on device scripts")]
-        public bool EnableArmorRatingModification { get; set; } = true;
+        public class ArmorRatingSettings
+        {
+            [Tooltip("Enable armor rating modification based on device name from VMAD script property 'deviceName'")]
+            public bool EnableArmorRatingModification { get; set; } = true;
         
-        [Tooltip("Armor rating values for specific scripts")]
-        public Dictionary<string, float> DeviceNameArmorValues { get; set; } = new();
-        
-        [Tooltip("Default armor value for scripts not found in DeviceNameArmorValues")]
-        public float DefaultArmorValue { get; set; } = 10f;
-    }
+            [Tooltip("Armor rating values for specific device names (from VMAD script property 'deviceName')")]
+            public Dictionary<string, float> DeviceNameArmorValues { get; set; } = new();
+        }
 }
