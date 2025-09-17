@@ -579,7 +579,7 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
 
     if (deviceNameProp is IScriptStringPropertyGetter stringProp)
     {
-        return stringProp.Value;
+        return stringProp.Data;
     }
     else
     {
