@@ -530,39 +530,44 @@ public static void ApplyArmorRatingByScript(IArmor armor, string scriptName)
                 && armor.Keywords.Contains(zadInvKw);
         }
 
-        public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invScript, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache, IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
-        {
-            var renderDevice = invScript
-                        .Properties
-                        .Where(prop => prop.Name == "deviceRendered")
-                        .FirstOrDefault()!
-                        .Cast<IScriptObjectPropertyGetter>()
-                        .Object
-                        .Cast<IArmorGetter>();
-            IArmorGetter renderArmor;
-            if (renderDevice.TryResolveContext<ISkyrimMod, ISkyrimModGetter, IArmor, IArmorGetter>(linkCache, out var foundArmor))
-            {
-                renderArmor = foundArmor.Record;
-                //Console.WriteLine($"using {foundArmor.Record.EditorID} found in {foundArmor.ModKey}");
-            }
-            else
-            {
-                return null;
-            }
-            var renderArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(renderArmor);
-            if (renderArmorOverride == null)
-            {
-                throw new Exception($"{renderArmor.EditorID} could not be turned into override");
-            } else if (renderArmorOverride.Keywords == null)
-            {
-                renderArmorOverride.Keywords = new ExtendedList<IFormLinkGetter<IKeywordGetter>>();
-            }
-            if (renderArmorOverride.VirtualMachineAdapter == null)
-            {
-                renderArmorOverride.VirtualMachineAdapter = new VirtualMachineAdapter();
-            }
-            return renderArmorOverride;
-        }
+public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invScript, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache, IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
+{
+    var renderDevice = invScript
+                .Properties
+                .Where(prop => prop.Name == "deviceRendered")
+                .FirstOrDefault()!
+                .Cast<IScriptObjectPropertyGetter>()
+                .Object
+                .Cast<IArmorGetter>();
+    IArmorGetter renderArmor;
+    if (renderDevice.TryResolveContext<ISkyrimMod, ISkyrimModGetter, IArmor, IArmorGetter>(linkCache, out var foundArmor))
+    {
+        renderArmor = foundArmor.Record;
+    }
+    else
+    {
+        return null;
+    }
+    var renderArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(renderArmor);
+    if (renderArmorOverride == null)
+    {
+        throw new Exception($"{renderArmor.EditorID} could not be turned into override");
+    }
+    
+    // Копируем локализованные строки для render armor
+    renderArmorOverride.Name = renderArmor.Name;
+    renderArmorOverride.Description = renderArmor.Description;
+    
+    if (renderArmorOverride.Keywords == null)
+    {
+        renderArmorOverride.Keywords = new ExtendedList<IFormLinkGetter<IKeywordGetter>>();
+    }
+    if (renderArmorOverride.VirtualMachineAdapter == null)
+    {
+        renderArmorOverride.VirtualMachineAdapter = new VirtualMachineAdapter();
+    }
+    return renderArmorOverride;
+}
 
         public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
@@ -695,7 +700,6 @@ public static void ApplyArmorRatingByScript(IArmor armor, string scriptName)
     }
     invScript.Name = newInvScriptName;
     invScript.Properties.Add(UDCDProp);
-                    ApplyArmorRatingByScript(invArmorOverride, newInvScriptName);
 
                     var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, invFinalScript.Name);
                     if (newRenderScriptName == null)
