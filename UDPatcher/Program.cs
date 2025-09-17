@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 using Mutagen.Bethesda.Plugins.Records;
 using System.Collections.Generic;
 
-namespace UDPatcherV2
+namespace UDPatcher
 {
     public class Program
     {
