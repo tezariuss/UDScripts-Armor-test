@@ -461,23 +461,36 @@ namespace UDPatcherV2
         }
         
         public static void ApplyArmorRatingByScript(IArmor armor, string scriptName)
-{
-    if (!Settings.ArmorRating.EnableArmorRatingModification)
-        return;
+        {
+            if (!Settings.ArmorRating.EnableArmorRatingModification)
+                return;
         
-    var armorSettings = Settings.ArmorRating;
-    
-    if (armorSettings.ScriptArmorValues.TryGetValue(scriptName, out float armorValue))
-    {
-        armor.ArmorRating = armorValue;
-        Console.WriteLine($"Set armor rating {armorValue} for {armor.EditorID} (script: {scriptName})");
-    }
-    else
-    {
-        armor.ArmorRating = armorSettings.DefaultArmorValue;
-        Console.WriteLine($"Set default armor rating {armorSettings.DefaultArmorValue} for {armor.EditorID} (script: {scriptName} not found)");
-    }
-}
+            var armorSettings = Settings.ArmorRating;
+            float value = armorSettings.ScriptArmorValues.TryGetValue(scriptName, out float armorValue)
+                ? armorValue
+                : armorSettings.DefaultArmorValue;
+        
+            // Если броня уже не 0 — не трогаем (можно добавить лог для отладки)
+            if (armor.ArmorRating > 0)
+            {
+                Console.WriteLine($"Skip {armor.EditorID}: already has ArmorRating {armor.ArmorRating}");
+                return;
+            }
+        
+            // Если значение > 0 — делаем бронёй и выставляем рейтинг
+            if (value > 0)
+            {
+                armor.ArmorType = ArmorType.LightArmor;
+                armor.ArmorRating = value;
+                Console.WriteLine($"Set ArmorType LightArmor and rating {value} for {armor.EditorID} (script: {scriptName})");
+            }
+            else
+            {
+                // Если нужно, можно явно оставить ArmorType = Clothes и ArmorRating = 0
+                armor.ArmorRating = 0;
+                Console.WriteLine($"Set ArmorRating 0 for {armor.EditorID} (script: {scriptName})");
+            }
+        }
 
         public static bool IsArmorDD(IArmorGetter armor, IKeywordGetter zadInvKw)
         {
