@@ -142,9 +142,8 @@ namespace UDPatcherV2
         public bool EnableArmorRatingModification { get; set; } = true;
         
         [Tooltip("Armor rating values for specific scripts")]
-        public Dictionary<string, float> ScriptArmorValues { get; set; } = new();
+        public Dictionary<string, float> DeviceNameArmorValues { get; set; } = new();
         
-        [Tooltip("Default armor value for scripts not found in ScriptArmorValues")]
-        public float DefaultArmorValue { get; set; } = 10f;
+        [Tooltip("Default armor value for scripts not found in DeviceNameArmorValues")]
     }
 }
