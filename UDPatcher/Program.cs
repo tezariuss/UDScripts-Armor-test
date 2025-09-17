@@ -460,10 +460,9 @@ namespace UDPatcherV2
             }
         }
         
-public static void ApplyArmorRatingByScript(IArmor armor, string scriptName)
+public static void ApplyArmorRatingByDeviceName(IArmor armor, string deviceName)
 {
-    Console.WriteLine($"=== ApplyArmorRatingByScript: {armor.EditorID} with script {scriptName} ===");
-    Console.WriteLine($"EnableArmorRatingModification: {Settings.ArmorRating.EnableArmorRatingModification}");
+    Console.WriteLine($"=== ApplyArmorRatingByDeviceName: {armor.EditorID} | deviceName: '{deviceName}' ===");
     
     if (!Settings.ArmorRating.EnableArmorRatingModification)
     {
@@ -471,45 +470,47 @@ public static void ApplyArmorRatingByScript(IArmor armor, string scriptName)
         return;
     }
 
-    var armorSettings = Settings.ArmorRating;
-    float value = armorSettings.ScriptArmorValues.TryGetValue(scriptName, out float armorValue)
-        ? armorValue
-        : armorSettings.DefaultArmorValue;
+    // Если deviceName пустой или не задан — пропускаем
+    if (string.IsNullOrWhiteSpace(deviceName))
+    {
+        Console.WriteLine($"Skip {armor.EditorID}: deviceName is null/empty");
+        return;
+    }
 
-    Console.WriteLine($"Current ArmorRating: {armor.ArmorRating}, Current ArmorType: {armor.BodyTemplate?.ArmorType}");
-    Console.WriteLine($"Applying value: {value} for script: {scriptName}");
+    // Ищем значение в настройках
+    if (!Settings.ArmorRating.DeviceNameArmorValues.TryGetValue(deviceName, out float value))
+    {
+        Console.WriteLine($"Skip {armor.EditorID}: no armor value defined for deviceName '{deviceName}'");
+        return;
+    }
 
-    // Пропускаем предметы с уже установленным рейтингом > 0
+    Console.WriteLine($"Found value: {value} for deviceName: {deviceName}");
+
+    // Пропускаем, если ArmorRating уже > 0 (опционально — можно убрать, если хочешь перезаписывать)
     if (armor.ArmorRating > 0)
     {
         Console.WriteLine($"Skip {armor.EditorID}: already has ArmorRating {armor.ArmorRating}");
         return;
     }
 
-    // Устанавливаем рейтинг и тип брони
+    // Создаём BodyTemplate, если его нет
+    if (armor.BodyTemplate == null)
+    {
+        armor.BodyTemplate = new BodyTemplate();
+    }
+
+    // Применяем значение
     if (value > 0)
     {
-        // Создаем BodyTemplate если его нет
-        if (armor.BodyTemplate == null)
-        {
-            armor.BodyTemplate = new BodyTemplate();
-        }
-        
         armor.BodyTemplate.ArmorType = ArmorType.LightArmor;
         armor.ArmorRating = value;
-        Console.WriteLine($"Set ArmorType LightArmor and rating {value} for {armor.EditorID}");
+        Console.WriteLine($"✅ Set ArmorType=LightArmor, ArmorRating={value} for {armor.EditorID}");
     }
-    else
+    else // value == 0
     {
-        // Создаем BodyTemplate если его нет
-        if (armor.BodyTemplate == null)
-        {
-            armor.BodyTemplate = new BodyTemplate();
-        }
-        
         armor.BodyTemplate.ArmorType = ArmorType.Clothing;
         armor.ArmorRating = 0;
-        Console.WriteLine($"Set ArmorType Clothing and rating 0 for {armor.EditorID}");
+        Console.WriteLine($"✅ Set ArmorType=Clothing, ArmorRating=0 for {armor.EditorID}");
     }
 }
 
