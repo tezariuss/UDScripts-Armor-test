@@ -139,7 +139,7 @@ namespace UDPatcherV2
     public class ArmorRatingSettings
     {
         [Tooltip("Enable armor rating modification based on device scripts")]
-        public bool EnableArmorRatingModification { get; set; } = false;
+        public bool EnableArmorRatingModification { get; set; } = true;
         
         [Tooltip("Armor rating values for specific scripts")]
         public Dictionary<string, float> ScriptArmorValues { get; set; } = new();
