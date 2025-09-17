@@ -553,11 +553,7 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
     {
         throw new Exception($"{renderArmor.EditorID} could not be turned into override");
     }
-    
-    // Копируем локализованные строки для render armor
-    renderArmorOverride.Name = renderArmor.Name?.ToString();
-    renderArmorOverride.Description = renderArmor.Description?.ToString();
-    
+        
     if (renderArmorOverride.Keywords == null)
     {
         renderArmorOverride.Keywords = new ExtendedList<IFormLinkGetter<IKeywordGetter>>();
@@ -663,11 +659,7 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
                 if (invUDScript == null)
                 {
           var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
-    
-    // 1. Сначала копируем локализованные строки
-    invArmorOverride.Name = invArmorGetter.Name?.ToString();
-    invArmorOverride.Description = invArmorGetter.Description?.ToString();
-    
+        
     // 2. Применяем armor rating до изменения скриптов
     var newInvScriptName = GetUDInvFromZadInv(invFinalScript.Name);
     if (newInvScriptName != null)
