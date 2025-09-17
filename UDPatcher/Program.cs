@@ -566,6 +566,29 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
     return renderArmorOverride;
 }
 
+        public static string? GetDeviceNameFromScript(IScriptEntryGetter script)
+{
+    var deviceNameProp = script.Properties
+        .FirstOrDefault(prop => prop.Name == "deviceName");
+
+    if (deviceNameProp == null)
+    {
+        Console.WriteLine($"⚠️ Script '{script.Name}' has no 'deviceName' property");
+        return null;
+    }
+
+    if (deviceNameProp is IScriptStringPropertyGetter stringProp)
+    {
+        return stringProp.Value;
+    }
+    else
+    {
+        Console.WriteLine($"⚠️ Property 'deviceName' in script '{script.Name}' is not a string (type: {deviceNameProp.GetType().Name})");
+        return null;
+    }
+}
+        
+
         public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
             var UDScripts = GetAllUdScriptNamesFromSettings();
