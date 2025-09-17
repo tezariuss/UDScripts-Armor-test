@@ -476,25 +476,25 @@ public static void ApplyArmorRatingByDeviceName(IArmor armor, string deviceName)
         return;
     }
 
-    // Если deviceName пустой или не задан — пропускаем
+    // Ð•ÑÐ»Ð¸ deviceName Ð¿ÑƒÑÑ‚Ð¾Ð¹ Ð¸Ð»Ð¸ Ð½Ðµ Ð·Ð°Ð´Ð°Ð½ â€” Ð¿Ñ€Ð¾Ð¿ÑƒÑÐºÐ°ÐµÐ¼
     if (string.IsNullOrWhiteSpace(deviceName))
     {
         Console.WriteLine($"Skip {armor.EditorID}: deviceName is null/empty");
         return;
     }
 
-    // ОТЛАДОЧНАЯ ИНФОРМАЦИЯ
+    // ÐžÐ¢Ð›ÐÐ”ÐžÐ§ÐÐÐ¯ Ð˜ÐÐ¤ÐžÐ ÐœÐÐ¦Ð˜Ð¯
     Console.WriteLine($"DEBUG: Settings.ArmorRating is null? {Settings.ArmorRating == null}");
     Console.WriteLine($"DEBUG: Settings.ArmorRating.DeviceNameArmorValues is null? {Settings.ArmorRating?.DeviceNameArmorValues == null}");
     if (Settings.ArmorRating?.DeviceNameArmorValues != null)
     {
         Console.WriteLine($"DEBUG: DeviceNameArmorValues count: {Settings.ArmorRating.DeviceNameArmorValues.Count}");
-        Console.WriteLine($"DEBUG: Available keys: {string.Join(", ", Settings.ArmorRating.DeviceNameArmorValues.Keys.Take(10))}"); // показываем первые 10 ключей
+        Console.WriteLine($"DEBUG: Available keys: {string.Join(", ", Settings.ArmorRating.DeviceNameArmorValues.Keys.Take(10))}"); // Ð¿Ð¾ÐºÐ°Ð·Ñ‹Ð²Ð°ÐµÐ¼ Ð¿ÐµÑ€Ð²Ñ‹Ðµ 10 ÐºÐ»ÑŽÑ‡ÐµÐ¹
         Console.WriteLine($"DEBUG: Looking for exact key match for: '{deviceName}'");
         Console.WriteLine($"DEBUG: Contains key '{deviceName}'? {Settings.ArmorRating.DeviceNameArmorValues.ContainsKey(deviceName)}");
     }
 
-    // Ищем значение в настройках
+    // Ð˜Ñ‰ÐµÐ¼ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ Ð² Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ°Ñ…
     if (!Settings.ArmorRating.DeviceNameArmorValues.TryGetValue(deviceName, out float value))
     {
         Console.WriteLine($"Skip {armor.EditorID}: no armor value defined for deviceName '{deviceName}'");
@@ -503,31 +503,31 @@ public static void ApplyArmorRatingByDeviceName(IArmor armor, string deviceName)
 
     Console.WriteLine($"Found value: {value} for deviceName: {deviceName}");
 
-    // Пропускаем, если ArmorRating уже > 0 (опционально — можно убрать, если хочешь перезаписывать)
+    // ÐŸÑ€Ð¾Ð¿ÑƒÑÐºÐ°ÐµÐ¼, ÐµÑÐ»Ð¸ ArmorRating ÑƒÐ¶Ðµ > 0 (Ð¾Ð¿Ñ†Ð¸Ð¾Ð½Ð°Ð»ÑŒÐ½Ð¾ â€” Ð¼Ð¾Ð¶Ð½Ð¾ ÑƒÐ±Ñ€Ð°Ñ‚ÑŒ, ÐµÑÐ»Ð¸ Ñ…Ð¾Ñ‡ÐµÑˆÑŒ Ð¿ÐµÑ€ÐµÐ·Ð°Ð¿Ð¸ÑÑ‹Ð²Ð°Ñ‚ÑŒ)
     if (armor.ArmorRating > 0)
     {
         Console.WriteLine($"Skip {armor.EditorID}: already has ArmorRating {armor.ArmorRating}");
         return;
     }
 
-    // Создаём BodyTemplate, если его нет
+    // Ð¡Ð¾Ð·Ð´Ð°Ñ‘Ð¼ BodyTemplate, ÐµÑÐ»Ð¸ ÐµÐ³Ð¾ Ð½ÐµÑ‚
     if (armor.BodyTemplate == null)
     {
         armor.BodyTemplate = new BodyTemplate();
     }
 
-    // Применяем значение
+    // ÐŸÑ€Ð¸Ð¼ÐµÐ½ÑÐµÐ¼ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ
     if (value > 0)
     {
         armor.BodyTemplate.ArmorType = ArmorType.LightArmor;
         armor.ArmorRating = value;
-        Console.WriteLine($"✅ Set ArmorType=LightArmor, ArmorRating={value} for {armor.EditorID}");
+        Console.WriteLine($"âœ… Set ArmorType=LightArmor, ArmorRating={value} for {armor.EditorID}");
     }
     else // value == 0
     {
         armor.BodyTemplate.ArmorType = ArmorType.Clothing;
         armor.ArmorRating = 0;
-        Console.WriteLine($"✅ Set ArmorType=Clothing, ArmorRating=0 for {armor.EditorID}");
+        Console.WriteLine($"âœ… Set ArmorType=Clothing, ArmorRating=0 for {armor.EditorID}");
     }
 }
 
@@ -590,7 +590,7 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
 
     if (deviceNameProp == null)
     {
-        Console.WriteLine($"⚠️ Script '{script.Name}' has no 'deviceName' property");
+        Console.WriteLine($"âš ï¸ Script '{script.Name}' has no 'deviceName' property");
         return null;
     }
 
@@ -600,7 +600,7 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
     }
     else
     {
-        Console.WriteLine($"⚠️ Property 'deviceName' in script '{script.Name}' is not a string (type: {deviceNameProp.GetType().Name})");
+        Console.WriteLine($"âš ï¸ Property 'deviceName' in script '{script.Name}' is not a string (type: {deviceNameProp.GetType().Name})");
         return null;
     }
 }
@@ -608,38 +608,6 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
 
         public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
-
-            // === ДОБАВЬТЕ ЭТИ СТРОКИ В САМОЕ НАЧАЛО ===
-    Console.WriteLine($"=== CRITICAL DEBUG START ===");
-    Console.WriteLine($"Settings object: {Settings != null}");
-    Console.WriteLine($"Settings.ArmorRating: {Settings.ArmorRating != null}");
-    
-    if (Settings.ArmorRating == null)
-    {
-        Console.WriteLine("ERROR: Settings.ArmorRating is NULL!");
-    }
-    else
-    {
-        Console.WriteLine($"Settings.ArmorRating.DeviceNameArmorValues: {Settings.ArmorRating.DeviceNameArmorValues != null}");
-        if (Settings.ArmorRating.DeviceNameArmorValues != null)
-        {
-            Console.WriteLine($"ArmorValues count: {Settings.ArmorRating.DeviceNameArmorValues.Count}");
-            if (Settings.ArmorRating.DeviceNameArmorValues.Count > 0)
-            {
-                var firstKey = Settings.ArmorRating.DeviceNameArmorValues.Keys.First();
-                Console.WriteLine($"First key: '{firstKey}' = {Settings.ArmorRating.DeviceNameArmorValues[firstKey]}");
-            }
-        }
-        else
-        {
-            Console.WriteLine("ERROR: DeviceNameArmorValues is NULL!");
-        }
-    }
-    Console.WriteLine($"=== CRITICAL DEBUG END ===");
-
-
-
-            
             var UDScripts = GetAllUdScriptNamesFromSettings();
             var zadScripts = GetAllZadScriptNamesFromSettings();
 
@@ -733,14 +701,14 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
 {
     var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
 
-    // Применяем armor rating по deviceName
+    // ÐŸÑ€Ð¸Ð¼ÐµÐ½ÑÐµÐ¼ armor rating Ð¿Ð¾ deviceName
     /*var deviceName = GetDeviceNameFromScript(invFinalScript);
     if (!string.IsNullOrEmpty(deviceName))
     {
         ApplyArmorRatingByDeviceName(invArmorOverride, deviceName);
     }*/
 
-    // Затем изменяем скрипты и keywords
+    // Ð—Ð°Ñ‚ÐµÐ¼ Ð¸Ð·Ð¼ÐµÐ½ÑÐµÐ¼ ÑÐºÑ€Ð¸Ð¿Ñ‚Ñ‹ Ð¸ keywords
     if (invArmorOverride.VirtualMachineAdapter == null)
     {
         throw new Exception($"{invArmorOverride} has no VMAD despite {invArmorGetter} having it");
@@ -784,7 +752,7 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
         renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
         AddUDKeywords(renderArmorOverride, consts);
 
-        // Применяем броню для рендер-девайса
+        // ÐŸÑ€Ð¸Ð¼ÐµÐ½ÑÐµÐ¼ Ð±Ñ€Ð¾Ð½ÑŽ Ð´Ð»Ñ Ñ€ÐµÐ½Ð´ÐµÑ€-Ð´ÐµÐ²Ð°Ð¹ÑÐ°
         var renderDeviceName = GetDeviceNameFromScript(newRenderScript);
         if (!string.IsNullOrEmpty(renderDeviceName))
         {
@@ -805,7 +773,7 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
         invScript.Properties[invScript.Properties.FindIndex(prop => prop.Name == "deviceRendered")].Cast<ScriptObjectProperty>().Object = newRenderArmor.ToLink();
         Console.WriteLine($"------NEW DEVICE {newRenderArmor} CREATED!------");
 
-        // Применяем броню для НОВОГО рендер-девайса
+        // ÐŸÑ€Ð¸Ð¼ÐµÐ½ÑÐµÐ¼ Ð±Ñ€Ð¾Ð½ÑŽ Ð´Ð»Ñ ÐÐžÐ’ÐžÐ“Ðž Ñ€ÐµÐ½Ð´ÐµÑ€-Ð´ÐµÐ²Ð°Ð¹ÑÐ°
         var renderDeviceName = GetDeviceNameFromScript(newRenderScript);
         if (!string.IsNullOrEmpty(renderDeviceName))
         {
@@ -828,11 +796,11 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
     renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
     AddUDKeywords(renderArmorOverride, consts);
 
-    // Применяем броню для СУЩЕСТВУЮЩЕГО рендер-девайса (renderArmorOverride)
+    // ÐŸÑ€Ð¸Ð¼ÐµÐ½ÑÐµÐ¼ Ð±Ñ€Ð¾Ð½ÑŽ Ð´Ð»Ñ Ð¡Ð£Ð©Ð•Ð¡Ð¢Ð’Ð£Ð®Ð©Ð•Ð“Ðž Ñ€ÐµÐ½Ð´ÐµÑ€-Ð´ÐµÐ²Ð°Ð¹ÑÐ° (renderArmorOverride)
     var renderDeviceName = GetDeviceNameFromScript(newRenderScript);
     if (!string.IsNullOrEmpty(renderDeviceName))
     {
-        ApplyArmorRatingByDeviceName(renderArmorOverride, renderDeviceName); // ✅ Исправлено: newRenderArmor → renderArmorOverride
+        ApplyArmorRatingByDeviceName(renderArmorOverride, renderDeviceName); // âœ… Ð˜ÑÐ¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¾: newRenderArmor â†’ renderArmorOverride
     }
 
     Console.WriteLine($"Repatched RenderDevice {renderArmorOverride} of InventoryDevice {invArmorGetter}");
