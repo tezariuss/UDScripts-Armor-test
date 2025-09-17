@@ -682,14 +682,14 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
 
                 if (invUDScript == null)
                 {
-          var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
+        var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
         
-    // 2. Применяем armor rating до изменения скриптов
-    var newInvScriptName = GetUDInvFromZadInv(invFinalScript.Name);
-    if (newInvScriptName != null)
-    {
-        ApplyArmorRatingByScript(invArmorOverride, newInvScriptName);
-    }
+        // 2. Применяем armor rating по deviceName
+        var deviceName = GetDeviceNameFromScript(invFinalScript);
+        if (!string.IsNullOrEmpty(deviceName))
+        {
+            ApplyArmorRatingByDeviceName(invArmorOverride, deviceName);
+        }
     
     // 3. Затем изменяем скрипты и keywords
     if (invArmorOverride.VirtualMachineAdapter == null)
@@ -730,7 +730,11 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
                     {
                         renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
                         AddUDKeywords(renderArmorOverride, consts);
-                        ApplyArmorRatingByScript(renderArmorOverride, newRenderScriptName);
+                        var renderDeviceName = GetDeviceNameFromScript(newRenderScript); // или renderUDScript, если уже есть
+                        if (!string.IsNullOrEmpty(renderDeviceName))
+                        {
+                            ApplyArmorRatingByDeviceName(renderArmorOverride, renderDeviceName);
+                        }
                         Console.WriteLine($"---Device {renderArmorOverride} patched!");
                         totalPatched++;
                     } else
@@ -760,7 +764,11 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
                     newRenderScript.Name = newRenderScriptName;
                     renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
                     AddUDKeywords(renderArmorOverride, consts);
-                    ApplyArmorRatingByScript(renderArmorOverride, newRenderScriptName);
+                    var renderDeviceName = GetDeviceNameFromScript(newRenderScript);
+                    if (!string.IsNullOrEmpty(renderDeviceName))
+                    {
+                        ApplyArmorRatingByDeviceName(newRenderArmor, renderDeviceName);
+                    }
                     Console.WriteLine($"Repatched RenderDevice {renderArmorOverride} of InventoryDevice {invArmorGetter}");
 
                     // un-skip device if it was patched
