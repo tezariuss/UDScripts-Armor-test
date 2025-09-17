@@ -657,32 +657,44 @@ public static void ApplyArmorRatingByScript(IArmor armor, string scriptName)
 
                 if (invUDScript == null)
                 {
-                    var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
-                    if (invArmorOverride.VirtualMachineAdapter == null)
-                    {
-                        throw new Exception($"{invArmorOverride} has no VMAD despite {invArmorGetter} having it");
-                    }
-                    if (invArmorOverride.Keywords == null)
-                    {
-                        invArmorOverride.Keywords = new();
-                    }
+          var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
+    
+    // 1. Сначала копируем локализованные строки
+    invArmorOverride.Name = invArmorGetter.Name;
+    invArmorOverride.Description = invArmorGetter.Description;
+    
+    // 2. Применяем armor rating до изменения скриптов
+    var newInvScriptName = GetUDInvFromZadInv(invFinalScript.Name);
+    if (newInvScriptName != null)
+    {
+        ApplyArmorRatingByScript(invArmorOverride, newInvScriptName);
+    }
+    
+    // 3. Затем изменяем скрипты и keywords
+    if (invArmorOverride.VirtualMachineAdapter == null)
+    {
+        throw new Exception($"{invArmorOverride} has no VMAD despite {invArmorGetter} having it");
+    }
+    if (invArmorOverride.Keywords == null)
+    {
+        invArmorOverride.Keywords = new();
+    }
 
-                    invArmorOverride.Keywords.Add(consts.udInvKeyword!);
-                    var invScript = invArmorOverride.VirtualMachineAdapter.Scripts.Where(script => script.Name == invFinalScript.Name).Single();
-                        
-                    var UDCDProp = new ScriptObjectProperty();
-                    UDCDProp.Name = "UDCDmain";
-                    UDCDProp.Flags = ScriptProperty.Flag.Edited;
-                    UDCDProp.Object = consts.udMainQst!.ToLink();
+    invArmorOverride.Keywords.Add(consts.udInvKeyword!);
+    var invScript = invArmorOverride.VirtualMachineAdapter.Scripts.Where(script => script.Name == invFinalScript.Name).Single();
+        
+    var UDCDProp = new ScriptObjectProperty();
+    UDCDProp.Name = "UDCDmain";
+    UDCDProp.Flags = ScriptProperty.Flag.Edited;
+    UDCDProp.Object = consts.udMainQst!.ToLink();
 
-                    var newInvScriptName = GetUDInvFromZadInv(invFinalScript.Name);
-                    if (newInvScriptName == null)
-                    {
-                        Console.WriteLine($"Could not find UD Inventory Script corresponding to {invFinalScript}");
-                        continue;
-                    }
-                    invScript.Name = newInvScriptName;
-                    invScript.Properties.Add(UDCDProp);
+    if (newInvScriptName == null)
+    {
+        Console.WriteLine($"Could not find UD Inventory Script corresponding to {invFinalScript}");
+        continue;
+    }
+    invScript.Name = newInvScriptName;
+    invScript.Properties.Add(UDCDProp);
                     ApplyArmorRatingByScript(invArmorOverride, newInvScriptName);
 
                     var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, invFinalScript.Name);
