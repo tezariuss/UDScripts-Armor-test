@@ -483,6 +483,17 @@ public static void ApplyArmorRatingByDeviceName(IArmor armor, string deviceName)
         return;
     }
 
+    // ОТЛАДОЧНАЯ ИНФОРМАЦИЯ
+    Console.WriteLine($"DEBUG: Settings.ArmorRating is null? {Settings.ArmorRating == null}");
+    Console.WriteLine($"DEBUG: Settings.ArmorRating.DeviceNameArmorValues is null? {Settings.ArmorRating?.DeviceNameArmorValues == null}");
+    if (Settings.ArmorRating?.DeviceNameArmorValues != null)
+    {
+        Console.WriteLine($"DEBUG: DeviceNameArmorValues count: {Settings.ArmorRating.DeviceNameArmorValues.Count}");
+        Console.WriteLine($"DEBUG: Available keys: {string.Join(", ", Settings.ArmorRating.DeviceNameArmorValues.Keys.Take(10))}"); // показываем первые 10 ключей
+        Console.WriteLine($"DEBUG: Looking for exact key match for: '{deviceName}'");
+        Console.WriteLine($"DEBUG: Contains key '{deviceName}'? {Settings.ArmorRating.DeviceNameArmorValues.ContainsKey(deviceName)}");
+    }
+
     // Ищем значение в настройках
     if (!Settings.ArmorRating.DeviceNameArmorValues.TryGetValue(deviceName, out float value))
     {
