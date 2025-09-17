@@ -142,6 +142,7 @@ namespace UDPatcherV2
             public bool EnableArmorRatingModification { get; set; } = true;
         
             [Tooltip("Armor rating values for specific device names (from VMAD script property 'deviceName')")]
-            public Dictionary<string, float> DeviceNameArmorValues { get; set; }
+            public Dictionary<string, float> DeviceNameArmorValues { get; set; } = new();
+
         }
 }
