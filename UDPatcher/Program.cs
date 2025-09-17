@@ -13,8 +13,9 @@ using DynamicData.Kernel;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Mutagen.Bethesda.Plugins.Records;
+using System.Collections.Generic;
 
-namespace UDPatcher
+namespace UDPatcherV2
 {
     public class Program
     {
@@ -458,6 +459,25 @@ namespace UDPatcher
                 }
             }
         }
+        
+        public static void ApplyArmorRatingByScript(IArmor armor, string scriptName)
+{
+    if (!Settings.ArmorRating.EnableArmorRatingModification)
+        return;
+        
+    var armorSettings = Settings.ArmorRating;
+    
+    if (armorSettings.ScriptArmorValues.TryGetValue(scriptName, out float armorValue))
+    {
+        armor.ArmorRating = armorValue;
+        Console.WriteLine($"Set armor rating {armorValue} for {armor.EditorID} (script: {scriptName})");
+    }
+    else
+    {
+        armor.ArmorRating = armorSettings.DefaultArmorValue;
+        Console.WriteLine($"Set default armor rating {armorSettings.DefaultArmorValue} for {armor.EditorID} (script: {scriptName} not found)");
+    }
+}
 
         public static bool IsArmorDD(IArmorGetter armor, IKeywordGetter zadInvKw)
         {
@@ -629,6 +649,7 @@ namespace UDPatcher
                     }
                     invScript.Name = newInvScriptName;
                     invScript.Properties.Add(UDCDProp);
+                    ApplyArmorRatingByScript(invArmorOverride, newInvScriptName);
 
                     var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, invFinalScript.Name);
                     if (newRenderScriptName == null)
@@ -643,6 +664,7 @@ namespace UDPatcher
                     {
                         renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
                         AddUDKeywords(renderArmorOverride, consts);
+                        ApplyArmorRatingByScript(renderArmorOverride, newRenderScriptName);
                         Console.WriteLine($"---Device {renderArmorOverride} patched!");
                         totalPatched++;
                     } else
@@ -655,6 +677,7 @@ namespace UDPatcher
                         newRenderArmorScripts[newRenderArmorScripts.FindIndex(script => script.Name == renderUDScript.Name)] = newRenderScript;
                         invScript.Properties[invScript.Properties.FindIndex(prop => prop.Name == "deviceRendered")].Cast<ScriptObjectProperty>().Object = newRenderArmor.ToLink();
                         Console.WriteLine($"------NEW DEVICE {newRenderArmor} CREATED!------");
+                        ApplyArmorRatingByScript(newRenderArmor, newRenderScriptName);
                     }
 
                     // un-skip device if it was patched
@@ -671,6 +694,7 @@ namespace UDPatcher
                     newRenderScript.Name = newRenderScriptName;
                     renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
                     AddUDKeywords(renderArmorOverride, consts);
+                    ApplyArmorRatingByScript(renderArmorOverride, newRenderScriptName);
                     Console.WriteLine($"Repatched RenderDevice {renderArmorOverride} of InventoryDevice {invArmorGetter}");
 
                     // un-skip device if it was patched
