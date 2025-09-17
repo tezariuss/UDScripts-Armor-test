@@ -145,5 +145,6 @@ namespace UDPatcherV2
         public Dictionary<string, float> DeviceNameArmorValues { get; set; } = new();
         
         [Tooltip("Default armor value for scripts not found in DeviceNameArmorValues")]
+        public float DefaultArmorValue { get; set; } = 10f;
     }
 }
