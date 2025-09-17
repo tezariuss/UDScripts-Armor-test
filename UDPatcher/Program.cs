@@ -400,6 +400,12 @@ namespace UDPatcherV2
                     prop.Name = newName;
                 }
             }
+            var deviceNameProp = original.Properties.FirstOrDefault(p => p.Name == "deviceName");
+            if (deviceNameProp != null)
+            {
+                newScript.Properties.Add(deviceNameProp.DeepCopy());
+            }
+        
             return newScript;
         }
 
@@ -460,22 +466,68 @@ namespace UDPatcherV2
             }
         }
         
-        public static void ApplyArmorRatingByScript(IArmor armor, string scriptName)
+public static void ApplyArmorRatingByDeviceName(IArmor armor, string deviceName)
 {
-    if (!Settings.ArmorRating.EnableArmorRatingModification)
-        return;
-        
-    var armorSettings = Settings.ArmorRating;
+    Console.WriteLine($"=== ApplyArmorRatingByDeviceName: {armor.EditorID} | deviceName: '{deviceName}' ===");
     
-    if (armorSettings.ScriptArmorValues.TryGetValue(scriptName, out float armorValue))
+    if (!Settings.ArmorRating.EnableArmorRatingModification)
     {
-        armor.ArmorRating = armorValue;
-        Console.WriteLine($"Set armor rating {armorValue} for {armor.EditorID} (script: {scriptName})");
+        Console.WriteLine("Armor rating modification disabled");
+        return;
     }
-    else
+
+    // Если deviceName пустой или не задан — пропускаем
+    if (string.IsNullOrWhiteSpace(deviceName))
     {
-        armor.ArmorRating = armorSettings.DefaultArmorValue;
-        Console.WriteLine($"Set default armor rating {armorSettings.DefaultArmorValue} for {armor.EditorID} (script: {scriptName} not found)");
+        Console.WriteLine($"Skip {armor.EditorID}: deviceName is null/empty");
+        return;
+    }
+
+    // ОТЛАДОЧНАЯ ИНФОРМАЦИЯ
+    Console.WriteLine($"DEBUG: Settings.ArmorRating is null? {Settings.ArmorRating == null}");
+    Console.WriteLine($"DEBUG: Settings.ArmorRating.DeviceNameArmorValues is null? {Settings.ArmorRating?.DeviceNameArmorValues == null}");
+    if (Settings.ArmorRating?.DeviceNameArmorValues != null)
+    {
+        Console.WriteLine($"DEBUG: DeviceNameArmorValues count: {Settings.ArmorRating.DeviceNameArmorValues.Count}");
+        Console.WriteLine($"DEBUG: Available keys: {string.Join(", ", Settings.ArmorRating.DeviceNameArmorValues.Keys.Take(10))}"); // показываем первые 10 ключей
+        Console.WriteLine($"DEBUG: Looking for exact key match for: '{deviceName}'");
+        Console.WriteLine($"DEBUG: Contains key '{deviceName}'? {Settings.ArmorRating.DeviceNameArmorValues.ContainsKey(deviceName)}");
+    }
+
+    // Ищем значение в настройках
+    if (!Settings.ArmorRating.DeviceNameArmorValues.TryGetValue(deviceName, out float value))
+    {
+        Console.WriteLine($"Skip {armor.EditorID}: no armor value defined for deviceName '{deviceName}'");
+        return;
+    }
+
+    Console.WriteLine($"Found value: {value} for deviceName: {deviceName}");
+
+    // Пропускаем, если ArmorRating уже > 0 (опционально — можно убрать, если хочешь перезаписывать)
+    if (armor.ArmorRating > 0)
+    {
+        Console.WriteLine($"Skip {armor.EditorID}: already has ArmorRating {armor.ArmorRating}");
+        return;
+    }
+
+    // Создаём BodyTemplate, если его нет
+    if (armor.BodyTemplate == null)
+    {
+        armor.BodyTemplate = new BodyTemplate();
+    }
+
+    // Применяем значение
+    if (value > 0)
+    {
+        armor.BodyTemplate.ArmorType = ArmorType.LightArmor;
+        armor.ArmorRating = value;
+        Console.WriteLine($"✅ Set ArmorType=LightArmor, ArmorRating={value} for {armor.EditorID}");
+    }
+    else // value == 0
+    {
+        armor.BodyTemplate.ArmorType = ArmorType.Clothing;
+        armor.ArmorRating = 0;
+        Console.WriteLine($"✅ Set ArmorType=Clothing, ArmorRating=0 for {armor.EditorID}");
     }
 }
 
@@ -496,42 +548,98 @@ namespace UDPatcherV2
                 && armor.Keywords.Contains(zadInvKw);
         }
 
-        public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invScript, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache, IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
-        {
-            var renderDevice = invScript
-                        .Properties
-                        .Where(prop => prop.Name == "deviceRendered")
-                        .FirstOrDefault()!
-                        .Cast<IScriptObjectPropertyGetter>()
-                        .Object
-                        .Cast<IArmorGetter>();
-            IArmorGetter renderArmor;
-            if (renderDevice.TryResolveContext<ISkyrimMod, ISkyrimModGetter, IArmor, IArmorGetter>(linkCache, out var foundArmor))
-            {
-                renderArmor = foundArmor.Record;
-                //Console.WriteLine($"using {foundArmor.Record.EditorID} found in {foundArmor.ModKey}");
-            }
-            else
-            {
-                return null;
-            }
-            var renderArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(renderArmor);
-            if (renderArmorOverride == null)
-            {
-                throw new Exception($"{renderArmor.EditorID} could not be turned into override");
-            } else if (renderArmorOverride.Keywords == null)
-            {
-                renderArmorOverride.Keywords = new ExtendedList<IFormLinkGetter<IKeywordGetter>>();
-            }
-            if (renderArmorOverride.VirtualMachineAdapter == null)
-            {
-                renderArmorOverride.VirtualMachineAdapter = new VirtualMachineAdapter();
-            }
-            return renderArmorOverride;
-        }
+public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invScript, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache, IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
+{
+    var renderDevice = invScript
+                .Properties
+                .Where(prop => prop.Name == "deviceRendered")
+                .FirstOrDefault()!
+                .Cast<IScriptObjectPropertyGetter>()
+                .Object
+                .Cast<IArmorGetter>();
+    IArmorGetter renderArmor;
+    if (renderDevice.TryResolveContext<ISkyrimMod, ISkyrimModGetter, IArmor, IArmorGetter>(linkCache, out var foundArmor))
+    {
+        renderArmor = foundArmor.Record;
+    }
+    else
+    {
+        return null;
+    }
+    var renderArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(renderArmor);
+    if (renderArmorOverride == null)
+    {
+        throw new Exception($"{renderArmor.EditorID} could not be turned into override");
+    }
+        
+    if (renderArmorOverride.Keywords == null)
+    {
+        renderArmorOverride.Keywords = new ExtendedList<IFormLinkGetter<IKeywordGetter>>();
+    }
+    if (renderArmorOverride.VirtualMachineAdapter == null)
+    {
+        renderArmorOverride.VirtualMachineAdapter = new VirtualMachineAdapter();
+    }
+    return renderArmorOverride;
+}
+
+        public static string? GetDeviceNameFromScript(IScriptEntryGetter script)
+{
+    var deviceNameProp = script.Properties
+        .FirstOrDefault(prop => prop.Name == "deviceName");
+
+    if (deviceNameProp == null)
+    {
+        Console.WriteLine($"⚠️ Script '{script.Name}' has no 'deviceName' property");
+        return null;
+    }
+
+    if (deviceNameProp is IScriptStringPropertyGetter stringProp)
+    {
+        return stringProp.Data;
+    }
+    else
+    {
+        Console.WriteLine($"⚠️ Property 'deviceName' in script '{script.Name}' is not a string (type: {deviceNameProp.GetType().Name})");
+        return null;
+    }
+}
+        
 
         public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
+
+            // === ДОБАВЬТЕ ЭТИ СТРОКИ В САМОЕ НАЧАЛО ===
+    Console.WriteLine($"=== CRITICAL DEBUG START ===");
+    Console.WriteLine($"Settings object: {Settings != null}");
+    Console.WriteLine($"Settings.ArmorRating: {Settings.ArmorRating != null}");
+    
+    if (Settings.ArmorRating == null)
+    {
+        Console.WriteLine("ERROR: Settings.ArmorRating is NULL!");
+    }
+    else
+    {
+        Console.WriteLine($"Settings.ArmorRating.DeviceNameArmorValues: {Settings.ArmorRating.DeviceNameArmorValues != null}");
+        if (Settings.ArmorRating.DeviceNameArmorValues != null)
+        {
+            Console.WriteLine($"ArmorValues count: {Settings.ArmorRating.DeviceNameArmorValues.Count}");
+            if (Settings.ArmorRating.DeviceNameArmorValues.Count > 0)
+            {
+                var firstKey = Settings.ArmorRating.DeviceNameArmorValues.Keys.First();
+                Console.WriteLine($"First key: '{firstKey}' = {Settings.ArmorRating.DeviceNameArmorValues[firstKey]}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("ERROR: DeviceNameArmorValues is NULL!");
+        }
+    }
+    Console.WriteLine($"=== CRITICAL DEBUG END ===");
+
+
+
+            
             var UDScripts = GetAllUdScriptNamesFromSettings();
             var zadScripts = GetAllZadScriptNamesFromSettings();
 
@@ -622,84 +730,116 @@ namespace UDPatcherV2
                 renderUDScript = FindArmorScript(renderArmorOverride.VirtualMachineAdapter!.Scripts, UDScripts);
 
                 if (invUDScript == null)
-                {
-                    var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
-                    if (invArmorOverride.VirtualMachineAdapter == null)
-                    {
-                        throw new Exception($"{invArmorOverride} has no VMAD despite {invArmorGetter} having it");
-                    }
-                    if (invArmorOverride.Keywords == null)
-                    {
-                        invArmorOverride.Keywords = new();
-                    }
+{
+    var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
 
-                    invArmorOverride.Keywords.Add(consts.udInvKeyword!);
-                    var invScript = invArmorOverride.VirtualMachineAdapter.Scripts.Where(script => script.Name == invFinalScript.Name).Single();
-                        
-                    var UDCDProp = new ScriptObjectProperty();
-                    UDCDProp.Name = "UDCDmain";
-                    UDCDProp.Flags = ScriptProperty.Flag.Edited;
-                    UDCDProp.Object = consts.udMainQst!.ToLink();
+    // Применяем armor rating по deviceName
+    /*var deviceName = GetDeviceNameFromScript(invFinalScript);
+    if (!string.IsNullOrEmpty(deviceName))
+    {
+        ApplyArmorRatingByDeviceName(invArmorOverride, deviceName);
+    }*/
 
-                    var newInvScriptName = GetUDInvFromZadInv(invFinalScript.Name);
-                    if (newInvScriptName == null)
-                    {
-                        Console.WriteLine($"Could not find UD Inventory Script corresponding to {invFinalScript}");
-                        continue;
-                    }
-                    invScript.Name = newInvScriptName;
-                    invScript.Properties.Add(UDCDProp);
-                    ApplyArmorRatingByScript(invArmorOverride, newInvScriptName);
+    // Затем изменяем скрипты и keywords
+    if (invArmorOverride.VirtualMachineAdapter == null)
+    {
+        throw new Exception($"{invArmorOverride} has no VMAD despite {invArmorGetter} having it");
+    }
+    if (invArmorOverride.Keywords == null)
+    {
+        invArmorOverride.Keywords = new();
+    }
 
-                    var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, invFinalScript.Name);
-                    if (newRenderScriptName == null)
-                    {
-                        Console.WriteLine($"Unable to find corresponding renderScript for {invFinalScript.Name} ({renderArmorOverride})");
-                        continue;
-                    }
-                    var newRenderScript = CopyInvScriptToRender(invFinalScript);
-                    newRenderScript.Name = newRenderScriptName;
+    invArmorOverride.Keywords.Add(consts.udInvKeyword!);
+    var invScript = invArmorOverride.VirtualMachineAdapter.Scripts.Where(script => script.Name == invFinalScript.Name).Single();
 
-                    if (renderUDScript == null)
-                    {
-                        renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
-                        AddUDKeywords(renderArmorOverride, consts);
-                        ApplyArmorRatingByScript(renderArmorOverride, newRenderScriptName);
-                        Console.WriteLine($"---Device {renderArmorOverride} patched!");
-                        totalPatched++;
-                    } else
-                    {
-                        Console.WriteLine($"WARNING: Render device {renderArmorOverride} already has UD script! Creating new render device!");
-                        newDevices++;
-                        var newRenderArmor = state.PatchMod.Armors.DuplicateInAsNewRecord(renderArmorOverride);
-                        newRenderArmor.EditorID = newRenderArmor.EditorID + "_AddedRenderDevice";
-                        var newRenderArmorScripts = newRenderArmor.VirtualMachineAdapter!.Scripts;
-                        newRenderArmorScripts[newRenderArmorScripts.FindIndex(script => script.Name == renderUDScript.Name)] = newRenderScript;
-                        invScript.Properties[invScript.Properties.FindIndex(prop => prop.Name == "deviceRendered")].Cast<ScriptObjectProperty>().Object = newRenderArmor.ToLink();
-                        Console.WriteLine($"------NEW DEVICE {newRenderArmor} CREATED!------");
-                        ApplyArmorRatingByScript(newRenderArmor, newRenderScriptName);
-                    }
+    var UDCDProp = new ScriptObjectProperty();
+    UDCDProp.Name = "UDCDmain";
+    UDCDProp.Flags = ScriptProperty.Flag.Edited;
+    UDCDProp.Object = consts.udMainQst!.ToLink();
 
-                    // un-skip device if it was patched
-                    skippedDevices[invModKey].Remove(invArmorGetter.EditorID!);
-                } else if (renderUDScript == null)
-                {
-                    Console.WriteLine($"Device with patched INV but not patched REND detected. Patching renderDevice {renderArmorOverride}.");
-                    var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, "zadequipscript");
-                    if (newRenderScriptName == null)
-                    {
-                        continue;
-                    }
-                    var newRenderScript = CopyInvScriptToRender(invFinalScript);
-                    newRenderScript.Name = newRenderScriptName;
-                    renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
-                    AddUDKeywords(renderArmorOverride, consts);
-                    ApplyArmorRatingByScript(renderArmorOverride, newRenderScriptName);
-                    Console.WriteLine($"Repatched RenderDevice {renderArmorOverride} of InventoryDevice {invArmorGetter}");
+    var newInvScriptName = GetUDInvFromZadInv(invFinalScript.Name);
+                    
+    if (newInvScriptName == null)
+    {
+        Console.WriteLine($"Could not find UD Inventory Script corresponding to {invFinalScript}");
+        continue;
+    }
 
-                    // un-skip device if it was patched
-                    skippedDevices[invModKey].Remove(invArmorGetter.EditorID!);
-                }
+    invScript.Name = newInvScriptName;
+    invScript.Properties.Add(UDCDProp);
+
+    var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, invFinalScript.Name);
+    if (newRenderScriptName == null)
+    {
+        Console.WriteLine($"Unable to find corresponding renderScript for {invFinalScript.Name} ({renderArmorOverride})");
+        continue;
+    }
+
+    var newRenderScript = CopyInvScriptToRender(invFinalScript);
+    newRenderScript.Name = newRenderScriptName;
+
+    if (renderUDScript == null)
+    {
+        renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
+        AddUDKeywords(renderArmorOverride, consts);
+
+        // Применяем броню для рендер-девайса
+        var renderDeviceName = GetDeviceNameFromScript(newRenderScript);
+        if (!string.IsNullOrEmpty(renderDeviceName))
+        {
+            ApplyArmorRatingByDeviceName(renderArmorOverride, renderDeviceName);
+        }
+
+        Console.WriteLine($"---Device {renderArmorOverride} patched!");
+        totalPatched++;
+    }
+    else
+    {
+        Console.WriteLine($"WARNING: Render device {renderArmorOverride} already has UD script! Creating new render device!");
+        newDevices++;
+        var newRenderArmor = state.PatchMod.Armors.DuplicateInAsNewRecord(renderArmorOverride);
+        newRenderArmor.EditorID = newRenderArmor.EditorID + "_AddedRenderDevice";
+        var newRenderArmorScripts = newRenderArmor.VirtualMachineAdapter!.Scripts;
+        newRenderArmorScripts[newRenderArmorScripts.FindIndex(script => script.Name == renderUDScript.Name)] = newRenderScript;
+        invScript.Properties[invScript.Properties.FindIndex(prop => prop.Name == "deviceRendered")].Cast<ScriptObjectProperty>().Object = newRenderArmor.ToLink();
+        Console.WriteLine($"------NEW DEVICE {newRenderArmor} CREATED!------");
+
+        // Применяем броню для НОВОГО рендер-девайса
+        var renderDeviceName = GetDeviceNameFromScript(newRenderScript);
+        if (!string.IsNullOrEmpty(renderDeviceName))
+        {
+            ApplyArmorRatingByDeviceName(newRenderArmor, renderDeviceName);
+        }
+    }
+
+    // un-skip device if it was patched
+    skippedDevices[invModKey].Remove(invArmorGetter.EditorID!);
+} else if (renderUDScript == null)
+{
+    Console.WriteLine($"Device with patched INV but not patched REND detected. Patching renderDevice {renderArmorOverride}.");
+    var newRenderScriptName = GetUdScriptNameFromArmor(renderArmorOverride, "zadequipscript");
+    if (newRenderScriptName == null)
+    {
+        continue;
+    }
+    var newRenderScript = CopyInvScriptToRender(invFinalScript);
+    newRenderScript.Name = newRenderScriptName;
+    renderArmorOverride.VirtualMachineAdapter.Scripts.Add(newRenderScript);
+    AddUDKeywords(renderArmorOverride, consts);
+
+    // Применяем броню для СУЩЕСТВУЮЩЕГО рендер-девайса (renderArmorOverride)
+    var renderDeviceName = GetDeviceNameFromScript(newRenderScript);
+    if (!string.IsNullOrEmpty(renderDeviceName))
+    {
+        ApplyArmorRatingByDeviceName(renderArmorOverride, renderDeviceName); // ✅ Исправлено: newRenderArmor → renderArmorOverride
+    }
+
+    Console.WriteLine($"Repatched RenderDevice {renderArmorOverride} of InventoryDevice {invArmorGetter}");
+
+    // un-skip device if it was patched
+    skippedDevices[invModKey].Remove(invArmorGetter.EditorID!);
+}
             }
             Console.WriteLine("===========================Finished patching===========================\n\n"
                 + $"Devices Patched: {totalPatched}\n"
