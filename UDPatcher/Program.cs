@@ -608,6 +608,38 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
 
         public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
+
+            // === ДОБАВЬТЕ ЭТИ СТРОКИ В САМОЕ НАЧАЛО ===
+    Console.WriteLine($"=== CRITICAL DEBUG START ===");
+    Console.WriteLine($"Settings object: {Settings != null}");
+    Console.WriteLine($"Settings.ArmorRating: {Settings.ArmorRating != null}");
+    
+    if (Settings.ArmorRating == null)
+    {
+        Console.WriteLine("ERROR: Settings.ArmorRating is NULL!");
+    }
+    else
+    {
+        Console.WriteLine($"Settings.ArmorRating.DeviceNameArmorValues: {Settings.ArmorRating.DeviceNameArmorValues != null}");
+        if (Settings.ArmorRating.DeviceNameArmorValues != null)
+        {
+            Console.WriteLine($"ArmorValues count: {Settings.ArmorRating.DeviceNameArmorValues.Count}");
+            if (Settings.ArmorRating.DeviceNameArmorValues.Count > 0)
+            {
+                var firstKey = Settings.ArmorRating.DeviceNameArmorValues.Keys.First();
+                Console.WriteLine($"First key: '{firstKey}' = {Settings.ArmorRating.DeviceNameArmorValues[firstKey]}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("ERROR: DeviceNameArmorValues is NULL!");
+        }
+    }
+    Console.WriteLine($"=== CRITICAL DEBUG END ===");
+
+
+
+            
             var UDScripts = GetAllUdScriptNamesFromSettings();
             var zadScripts = GetAllZadScriptNamesFromSettings();
 
