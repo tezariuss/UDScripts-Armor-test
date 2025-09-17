@@ -555,8 +555,8 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
     }
     
     // Копируем локализованные строки для render armor
-    renderArmorOverride.Name = renderArmor.Name;
-    renderArmorOverride.Description = renderArmor.Description;
+    renderArmorOverride.Name = renderArmor.Name?.ToString();
+    renderArmorOverride.Description = renderArmor.Description?.ToString();
     
     if (renderArmorOverride.Keywords == null)
     {
@@ -665,8 +665,8 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
           var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
     
     // 1. Сначала копируем локализованные строки
-    invArmorOverride.Name = invArmorGetter.Name;
-    invArmorOverride.Description = invArmorGetter.Description;
+    invArmorOverride.Name = invArmorGetter.Name?.ToString();
+    invArmorOverride.Description = invArmorGetter.Description?.ToString();
     
     // 2. Применяем armor rating до изменения скриптов
     var newInvScriptName = GetUDInvFromZadInv(invFinalScript.Name);
