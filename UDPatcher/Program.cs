@@ -462,6 +462,18 @@ namespace UDPatcherV2
         
         public static void ApplyArmorRatingByScript(IArmor armor, string scriptName)
         {
+            Console.WriteLine($"=== ApplyArmorRatingByScript: {armor.EditorID} with script {scriptName} ===");
+            Console.WriteLine($"EnableArmorRatingModification: {Settings.ArmorRating.EnableArmorRatingModification}");
+            
+            if (!Settings.ArmorRating.EnableArmorRatingModification)
+            {
+                Console.WriteLine("Armor rating modification disabled");
+                return;
+            }
+            
+            Console.WriteLine($"Script armor values count: {Settings.ArmorRating.ScriptArmorValues.Count}");
+            Console.WriteLine($"Default armor value: {Settings.ArmorRating.DefaultArmorValue}");
+            
             if (!Settings.ArmorRating.EnableArmorRatingModification)
                 return;
         
@@ -470,14 +482,7 @@ namespace UDPatcherV2
                 ? armorValue
                 : armorSettings.DefaultArmorValue;
         
-            // Если броня уже не 0 — не трогаем (можно добавить лог для отладки)
-            if (armor.ArmorRating > 0)
-            {
-                Console.WriteLine($"Skip {armor.EditorID}: already has ArmorRating {armor.ArmorRating}");
-                return;
-            }
-        
-            // Если значение > 0 — делаем бронёй и выставляем рейтинг
+            // Убрали проверку armor.ArmorRating > 0 - теперь всегда применяем настройки
             if (value > 0)
             {
                 armor.ArmorType = ArmorType.LightArmor;
@@ -486,9 +491,9 @@ namespace UDPatcherV2
             }
             else
             {
-                // Если нужно, можно явно оставить ArmorType = Clothes и ArmorRating = 0
+                armor.ArmorType = ArmorType.Clothing;
                 armor.ArmorRating = 0;
-                Console.WriteLine($"Set ArmorRating 0 for {armor.EditorID} (script: {scriptName})");
+                Console.WriteLine($"Set ArmorType Clothing and rating 0 for {armor.EditorID} (script: {scriptName})");
             }
         }
 
