@@ -734,11 +734,11 @@ public static Armor? GetRenderArmorOverrideFromInvScript(IScriptEntryGetter invS
     var invArmorOverride = state.PatchMod.Armors.GetOrAddAsOverride(invArmorGetter);
 
     // Применяем armor rating по deviceName
-    var deviceName = GetDeviceNameFromScript(invFinalScript);
+    /*var deviceName = GetDeviceNameFromScript(invFinalScript);
     if (!string.IsNullOrEmpty(deviceName))
     {
         ApplyArmorRatingByDeviceName(invArmorOverride, deviceName);
-    }
+    }*/
 
     // Затем изменяем скрипты и keywords
     if (invArmorOverride.VirtualMachineAdapter == null)
