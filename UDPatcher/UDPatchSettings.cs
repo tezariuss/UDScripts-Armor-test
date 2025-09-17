@@ -22,7 +22,7 @@ namespace UDPatcherV2
         
         [MaintainOrder]
         [Tooltip("Settings for modifying armor rating based on device scripts")]
-        public ArmorRatingSettings ArmorRating = new();
+        public ArmorRatingSettings ArmorRating { get; set; }
 
         [MaintainOrder]
         public UDRenderSettings RenderScriptSettings = new();
