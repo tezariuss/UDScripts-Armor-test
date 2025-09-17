@@ -6,7 +6,7 @@ using System.Reflection;
 using CommandLine;
 using Mutagen.Bethesda;
 
-namespace UDPatcher
+namespace UDPatcherV2
 {
     public class UDPatchSettings
     {
@@ -19,6 +19,11 @@ namespace UDPatcher
         [MaintainOrder]
         [Tooltip("Mods which will be ignored when patching")]
         public HashSet<ModKey> ModsToNotPatch = new();
+        
+        [MaintainOrder]
+        [Tooltip("Settings for modifying armor rating based on device scripts")]
+        public ArmorRatingSettings ArmorRating = new();
+
         [MaintainOrder]
         public UDRenderSettings RenderScriptSettings = new();
         [MaintainOrder]
@@ -129,5 +134,17 @@ namespace UDPatcher
                 .Replace("Getter", ""))!
                 .SetValue(this, FunnyFunction<T>(property, original));
         }
+    }
+
+    public class ArmorRatingSettings
+    {
+        [Tooltip("Enable armor rating modification based on device scripts")]
+        public bool EnableArmorRatingModification { get; set; } = false;
+        
+        [Tooltip("Armor rating values for specific scripts")]
+        public Dictionary<string, float> ScriptArmorValues { get; set; } = new();
+        
+        [Tooltip("Default armor value for scripts not found in ScriptArmorValues")]
+        public float DefaultArmorValue { get; set; } = 10f;
     }
 }
